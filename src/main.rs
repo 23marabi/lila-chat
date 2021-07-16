@@ -152,7 +152,7 @@ fn check_pin(name: &str, pin: i32) -> String {
     return format!("User {} does not exist.", name.to_string());
 }
 
-// Change a users pin
+// Change a users pin/name
 #[post("/api/users/change/<name>/<pin>/<new_name>/<new_pin>")]
 fn change(name: &str, pin: i32, new_name: &str, new_pin: i32) -> String {
    let mut users: Vec<User> = read_json();
@@ -162,10 +162,24 @@ fn change(name: &str, pin: i32, new_name: &str, new_pin: i32) -> String {
     for i in 0..users.len() {
         if users[i].name == name { // make sure name exists
             if users[i].pin_hashed == hashed_pin_input { // check if pin is correct
-                users[i].name = new_name.to_string();
-                users[i].pin_hashed = sha1::Sha1::from(&new_pin.to_string()).digest().to_string();
-                write_json(&users);
-                return format!("User previously known as {} is now called {}. New pin hash is {}.", name.to_string(), users[i].name.to_string(), users[i].pin_hashed);
+                // Check wether to change name or name+pin
+                if users[i].name == new_name {
+                    users[i].pin_hashed = sha1::Sha1::from(&new_pin.to_string()).digest().to_string();
+                    write_json(&users);
+                    return format!("User {}'s new pin hash is {}.", name.to_string(), users[i].pin_hashed);
+                } else {
+                    // check if new name already exists
+                    for n in &users {
+                        if n.name == new_name {
+                            return format!("New name {} is already taken!", new_name);
+                        } else {
+                            users[i].name = new_name.to_string();
+                            users[i].pin_hashed = sha1::Sha1::from(&new_pin.to_string()).digest().to_string();
+                            write_json(&users);
+                            return format!("User previously known as {} is now {}. Pin hash, if different, is {}", name.to_string(), users[i].name.to_string(), users[i].pin_hashed.to_string());
+                        }
+                    }
+                }
             } else {
                 return format!("Incorrect pin for user {}!", name.to_string());
             }
