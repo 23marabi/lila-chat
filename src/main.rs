@@ -24,9 +24,7 @@ fn index() -> &'static str {
 
     `GET /api/users/<name>/<pin>` Check if the user exists, and if the pin provided matches
 
-    `POST /api/register/<name>/<pin>/<new-pin>` Change a users pin (<new-pin> is an int)
-
-    `POST /api/register/<name>/<pin>/<new-name>` Change a users name (<new-pin> is an str)"
+    `POST /api/users/change/<name>/<pin>/<new-name>/<new-pin>` Change a users name and/or pin"
 }
 
 // The output is wrapped in a Result to allow matching on errors
