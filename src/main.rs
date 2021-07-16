@@ -11,7 +11,6 @@ use std::path::Path;
 #[derive(Clone, Serialize, Deserialize)]
 struct User {
     name: String,
-    pin: i32,
     pin_hashed: String,
 }
 
@@ -133,9 +132,9 @@ fn register_user(name: &str, pin: i32) -> String {
         };
     };
     let pin_hashed = sha1::Sha1::from(&pin.to_string()).digest().to_string();
-    users.push(User { name: name.to_string(), pin: pin, pin_hashed: pin_hashed});
+    users.push(User { name: name.to_string(), pin_hashed: pin_hashed});
     append_json(&users);
-    return format!("User {} registered with pin {}, hash: {}", users[users.len()-1].name.to_string(), users[users.len()-1].pin, users[users.len()-1].pin_hashed);
+    return format!("User {} registered with pin hash: {}", users[users.len()-1].name.to_string(), users[users.len()-1].pin_hashed);
 }
 
 // Check if pin matches user
@@ -160,15 +159,15 @@ fn check_pin(name: &str, pin: i32) -> String {
 fn change(name: &str, pin: i32, new_name: &str, new_pin: i32) -> String {
    let mut users: Vec<User> = read_json();
 
+    let hashed_pin_input = sha1::Sha1::from(&pin.to_string()).digest().to_string();
     // Loop over elements in vector
     for i in 0..users.len() {
         if users[i].name == name { // make sure name exists
-            if users[i].pin == pin { // check if pin is correct
+            if users[i].pin_hashed == hashed_pin_input { // check if pin is correct
                 users[i].name = new_name.to_string();
-                users[i].pin = new_pin;
                 users[i].pin_hashed = sha1::Sha1::from(&new_pin.to_string()).digest().to_string();
                 write_json(&users);
-                return format!("User previously known as {} is now called {}. New pin is {}.", name.to_string(), users[i].name.to_string(), users[i].pin);
+                return format!("User previously known as {} is now called {}. New pin hash is {}.", name.to_string(), users[i].name.to_string(), users[i].pin_hashed);
             } else {
                 return format!("Incorrect pin for user {}!", name.to_string());
             }
