@@ -1,4 +1,5 @@
 #[macro_use] extern crate rocket;
+extern crate sha1;
 use serde::{Deserialize, Serialize};
 use serde_json::Result;
 use std::fs::{File, OpenOptions};
@@ -11,6 +12,7 @@ use std::path::Path;
 struct User {
     name: String,
     pin: i32,
+    pin_hashed: String,
 }
 
 #[get("/")]
@@ -130,18 +132,20 @@ fn register_user(name: &str, pin: i32) -> String {
             return "false".to_string();
         };
     };
-    users.push(User { name: name.to_string(), pin: pin});
+    let pin_hashed = sha1::Sha1::from(&pin.to_string()).digest().to_string();
+    users.push(User { name: name.to_string(), pin: pin, pin_hashed: pin_hashed});
     append_json(&users);
-    return format!("User {} registered with pin {}", users[users.len()-1].name.to_string(), users[users.len()-1].pin);
+    return format!("User {} registered with pin {}, hash: {}", users[users.len()-1].name.to_string(), users[users.len()-1].pin, users[users.len()-1].pin_hashed);
 }
 
 // Check if pin matches user
 #[get("/api/users/<name>/<pin>")]
 fn check_pin(name: &str, pin: i32) -> String {
     let users: Vec<User> = read_json();
+    let hashed_pin_input = sha1::Sha1::from(&pin.to_string()).digest().to_string();
     for i in &users { // loop through the vector
         if i.name == name {
-            if i.pin == pin {
+            if i.pin_hashed == hashed_pin_input {
                 return "true".to_string();
             } else {
                 return "Incorrect pin".to_string();
@@ -162,6 +166,7 @@ fn change(name: &str, pin: i32, new_name: &str, new_pin: i32) -> String {
             if users[i].pin == pin { // check if pin is correct
                 users[i].name = new_name.to_string();
                 users[i].pin = new_pin;
+                users[i].pin_hashed = sha1::Sha1::from(&new_pin.to_string()).digest().to_string();
                 write_json(&users);
                 return format!("User previously known as {} is now called {}. New pin is {}.", name.to_string(), users[i].name.to_string(), users[i].pin);
             } else {
