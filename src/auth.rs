@@ -1,17 +1,11 @@
+extern crate log;
+use crate::user::User;
 extern crate sha1;
-use serde::{Deserialize, Serialize};
 use serde_json::Result;
 use std::fs::{File, OpenOptions};
 use std::io::prelude::*;
 use std::io::{self, BufRead};
 use std::path::Path;
-
-// Struct to store basic user data
-#[derive(Clone, Serialize, Deserialize)]
-struct User {
-    name: String,
-    pin_hashed: String,
-}
 
 #[get("/")]
 pub fn index() -> &'static str {
@@ -46,8 +40,7 @@ fn read_json() -> Vec<User> {
     if let Ok(lines) = read_lines(&path) {
         for line in lines {
             if let Ok(user) = line {
-                println!("{} contains:\n{}", display, &user);
-
+                info!("read {} from json file {}", display, &user);
                 // Parse line from file into a data structure
                 let user: User = serde_json::from_str(&user).unwrap();
                 users.push(user);
@@ -78,12 +71,12 @@ fn append_json(users_list: &Vec<User>)  -> Result<()> {
     // Write to the file
     match file.write_all(users_json.as_bytes()) {
         Err(why) => panic!("couldn't write to {}: {}", display, why),
-        Ok(_) => println!("succesfully wrote to {}", display),
+        Ok(_) => info!("succesfully wrote to {}", display),
     };
     // Add newline
     match file.write_all("\n".as_bytes()) {
         Err(why) => panic!("couldn't write to {}: {}", display, why),
-        Ok(_) => println!("succesfully wrote to {}", display),
+        Ok(_) => info!("succesfully wrote to {}", display),
     };
     Ok(())
 }
@@ -114,7 +107,7 @@ fn write_json(users_list: &Vec<User>) -> Result<()> {
     // Write to the file
     match file.write_all(users_json.as_bytes()) {
         Err(why) => panic!("couldn't write to {}: {}", display, why),
-        Ok(_) => println!("succesfully wrote to {}", display),
+        Ok(_) => info!("succesfully wrote to {}", display),
     };
     Ok(())
 }
@@ -125,12 +118,20 @@ pub fn register_user(name: &str, pin: i32) -> String {
     let mut users: Vec<User> = read_json(); // Create an array of users out of parsed json
     for i in &users { // loop through elements of the vector
         if i.name == name.to_lowercase() {
-            return "false".to_string();
+            warn!("Cannot create user {}! User is already in system.", i.name);
+            return "User already exists!".to_string();
         };
     };
-    let pin_hashed = sha1::Sha1::from(&pin.to_string()).digest().to_string();
-    users.push(User { name: name.to_string().to_lowercase(), pin_hashed: pin_hashed});
-    append_json(&users);
+
+    let pin_hashed = sha1::Sha1::from(&pin.to_string()).digest().to_string(); // hash the pin
+    users.push( User { name: name.to_string().to_lowercase(), pin_hashed: pin_hashed}); // append the user to the vec
+    // append to the json file
+    match append_json(&users) {
+        Err(why) => panic!("couldn't append json: {}", why),
+        Ok(()) => info!("Succesfully appended to json"),
+    };
+
+    info!("succesfully created user {} with pin hash {}", users[users.len()-1].name.to_string(), users[users.len()-1].pin_hashed);
     return format!("User {} registered with pin hash: {}", users[users.len()-1].name.to_string().to_lowercase(), users[users.len()-1].pin_hashed);
 }
 
@@ -142,12 +143,15 @@ pub fn check_pin(name: &str, pin: i32) -> String {
     for i in &users { // loop through the vector
         if i.name == name.to_lowercase() {
             if i.pin_hashed == hashed_pin_input {
-                return "true".to_string();
+                info!("pin correct for user {}", i.name);
+                return "pin matches".to_string();
             } else {
+                warn!("pin incorrect for user {}", i.name);
                 return "Incorrect pin".to_string();
             };
         };
     };
+    warn!("cannot check pin for user {} as they do not exist", name.to_string().to_lowercase());
     return format!("User {} does not exist.", name.to_string().to_lowercase());
 }
 
@@ -165,35 +169,38 @@ pub fn change(name: &str, pin: i32, new_name: &str, new_pin: i32) -> String {
                 // Check wether to change name or name+pin
                 if users[i].name == new_name.to_lowercase() {
                     // check if new name already exists
-                    for n in &users {
-
-                        if n.name == new_name.to_lowercase() {
-                            return format!("New name {} is already taken!", new_name.to_lowercase());
-                        } else {
-                            users[i].pin_hashed = sha1::Sha1::from(&new_pin.to_string()).digest().to_string();
-                            write_json(&users);
-                            return format!("User {}'s new pin hash is {}.", name.to_string().to_lowercase(), users[i].pin_hashed);
+                        users[i].pin_hashed = sha1::Sha1::from(&new_pin.to_string()).digest().to_string();
+                        match write_json(&users) {
+                            Err(why) => panic!("Cannot write to json! {}", why),
+                            Ok(()) => info!("succesfully wrote to json file"),
                         }
-                    }
+                        info!("Changed pin of {}", name.to_string().to_lowercase());
+                        return format!("User {}'s new pin hash is {}.", name.to_string().to_lowercase(), users[i].pin_hashed);
                 } else {
                     // check if new name already exists
                     for n in &users {
                         if n.name == new_name.to_lowercase() {
+                            warn!("Could not change name of {} to {}, as new name is already taken.", name.to_lowercase(), new_name.to_lowercase());
                             return format!("New name {} is already taken!", new_name.to_lowercase());
-                        } else {
-                            users[i].name = new_name.to_string().to_lowercase();
-                            users[i].pin_hashed = sha1::Sha1::from(&new_pin.to_string()).digest().to_string();
-                            write_json(&users);
-                            return format!("User previously known as {} is now {}. Pin hash, if different, is {}", name.to_string(), users[i].name.to_string(), users[i].pin_hashed.to_string());
                         }
                     }
+                    users[i].name = new_name.to_string().to_lowercase();
+                    users[i].pin_hashed = sha1::Sha1::from(&new_pin.to_string()).digest().to_string();
+                            
+                    match write_json(&users) {
+                        Err(why) => panic!("couldn't write to json file! {}", why),
+                        Ok(()) => info!("succesfully wrote to json file"),
+                    }
+                    info!("Changed name of {} to {}. New pin hash is {}", name.to_string(), users[i].name.to_string(), users[i].pin_hashed.to_string());
+                    return format!("User previously known as {} is now {}. Pin hash, if different, is {}", name.to_string(), users[i].name.to_string(), users[i].pin_hashed.to_string());
                 }
             } else {
+                warn!("Incorrect pin given for user {}!", name.to_string());
                 return format!("Incorrect pin for user {}!", name.to_string());
             }
         }
     }
-
+    warn!("User {} not found, could not change pin and/or name.", name.to_string());
     return format!("User {} not found.", name.to_string());
 }
 
