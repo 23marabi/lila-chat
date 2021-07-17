@@ -12,3 +12,16 @@ Send it the unhashed username and pin, and it'll store it in the `users.json` fi
 `GET /api/users/<name>/<pin>` Check if the user exists, and if the pin provided matches
 
 `POST /api/users/change/<name>/<pin>/<new-name>/<new-pin>` Change a users pin/name
+
+## Chat Planning
+
+Clientside js will register & check login of users, if login is correct will ask for a random token.
+Backend will generate token, store it, and then send it to the client to set as a cookie.
+Whenever user sends a message, client will send message & token and backend will check if token matches.
+
+## To-Do:
+
+- [x] Basic auth api
+- [ ] Basic messaging system
+- [ ] Token generation & storage
+- [x] Pronouns
