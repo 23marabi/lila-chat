@@ -5,4 +5,6 @@ use serde::{Deserialize, Serialize};
 pub struct User {
     pub name: String,
     pub pin_hashed: String,
+    pub pronouns: String,
+    pub sessionToken: String,
 }
