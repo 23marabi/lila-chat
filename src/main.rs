@@ -1,5 +1,6 @@
 #[macro_use] extern crate rocket;
 extern crate sha1;
+use rocket::fairing::AdHoc;
 use serde::{Deserialize, Serialize};
 use serde_json::Result;
 use std::fs::{File, OpenOptions};
@@ -191,10 +192,27 @@ fn change(name: &str, pin: i32, new_name: &str, new_pin: i32) -> String {
 
 #[get("/api/users/<name>")]
 fn get_user(name: &str) -> String {
-    return format!("User {}", name);
+    let users: Vec<User> = read_json();
+    let found_user = users.iter().filter(|u| u.name == name).next();
+
+    match found_user {
+        Some(user) => format!("User {}", &user.name),
+        None => "User does not exist".to_string(),
+    }
 }
 
 #[launch]
 fn rocket() -> _ {
-    rocket::build().mount("/", routes![index,get_user,register_user, check_pin, change])
+    let cors_fairing = AdHoc::on_response("CORS", |_, res| {
+        Box::pin(async move {
+            res.set_raw_header("Access-Control-Allow-Origin", "*");
+        })
+    });
+
+    rocket::build()
+        .mount(
+            "/",
+            routes![index, get_user, register_user, check_pin, change],
+        )
+        .attach(cors_fairing)
 }
