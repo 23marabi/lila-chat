@@ -29,3 +29,6 @@ Whenever user sends a message, client will send message & token and backend will
 - [ ] Basic messaging system
 - [ ] Token generation & storage
 - [x] Pronouns
+- [ ] Change pronouns
+- [ ] User management (banning, etc.)
+- [ ] Blacklist words from chat/names

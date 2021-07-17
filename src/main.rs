@@ -1,12 +1,14 @@
-#[macro_use]
-extern crate log;
+#[macro_use] extern crate log;
 #[macro_use] extern crate rocket;
+#[macro_use] extern crate rocket_contrib;
+
 use rocket::fairing::AdHoc;
 
 mod auth;
 mod user;
 mod message;
 mod file_io;
+mod chat;
 
 #[launch]
 fn rocket() -> _ {
@@ -22,7 +24,7 @@ fn rocket() -> _ {
     rocket::build()
         .mount(
             "/",
-            routes![auth::index, auth::get_user, auth::register_user, auth::check_pin, auth::change, auth::get_user_name, auth::get_user_pronouns],
+            routes![auth::index, auth::get_user, auth::register_user, auth::check_pin, auth::change, auth::get_user_name, auth::get_user_pronouns, chat::send_message],
         )
         .attach(cors_fairing)
 }
