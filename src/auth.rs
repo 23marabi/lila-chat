@@ -8,13 +8,17 @@ use serde_json::Result;
 pub fn index() -> &'static str {
     "API Info:
 
-    `POST /api/register/<name>/<pin>` Register the username with the pin provided if it doesn't already exist
+    `POST /api/register/<name>/<pin>/<pronouns>` Register the username with the pin provided if it doesn't already exist
 
     `GET /api/users/<name>` Check if the user exists
 
     `GET /api/users/<name>/<pin>` Check if the user exists, and if the pin provided matches
 
-    `POST /api/users/change/<name>/<pin>/<new-name>/<new-pin>` Change a users name and/or pin"
+    `POST /api/users/change/<name>/<pin>/<new-name>/<new-pin>` Change a users name and/or pin
+
+    `GET /api/about/name/<name>` Get the name of a user
+
+    `GET /api/about/pronouns/<name>` Get the pronouns of a user"
 }
 /*
 // The output is wrapped in a Result to allow matching on errors

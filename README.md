@@ -5,13 +5,17 @@ Send it the unhashed username and pin, and it'll store it in the `users.json` fi
 
 ## API Documentation
 
-`POST /api/register/<name>/<pin>` Register the username with the pin provided if it doesn't already exist
+`POST /api/register/<name>/<pin>/<pronouns>` Register the username with the pin provided if it doesn't already exist
 
 `GET /api/users/<name>` Check if the user exists
 
 `GET /api/users/<name>/<pin>` Check if the user exists, and if the pin provided matches
 
 `POST /api/users/change/<name>/<pin>/<new-name>/<new-pin>` Change a users pin/name
+
+`GET /api/about/name/<name>` Get's the name of a user, probably just for checking if they exist
+
+`GET /api/about/pronouns/<name>` Get's the pronouns of a user
 
 ## Chat Planning
 
