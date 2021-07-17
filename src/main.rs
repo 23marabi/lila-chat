@@ -6,6 +6,7 @@ use rocket::fairing::AdHoc;
 mod auth;
 mod user;
 mod message;
+mod file_io;
 
 #[launch]
 fn rocket() -> _ {
@@ -21,7 +22,7 @@ fn rocket() -> _ {
     rocket::build()
         .mount(
             "/",
-            routes![auth::index, auth::get_user, auth::register_user, auth::check_pin, auth::change],
+            routes![auth::index, auth::get_user, auth::register_user, auth::check_pin, auth::change, auth::get_user_name, auth::get_user_pronouns],
         )
         .attach(cors_fairing)
 }

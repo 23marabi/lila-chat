@@ -1,11 +1,8 @@
 extern crate log;
 use crate::user::User;
+use crate::file_io::{read_json, append_json, write_json};
 extern crate sha1;
 use serde_json::Result;
-use std::fs::{File, OpenOptions};
-use std::io::prelude::*;
-use std::io::{self, BufRead};
-use std::path::Path;
 
 #[get("/")]
 pub fn index() -> &'static str {
@@ -19,7 +16,7 @@ pub fn index() -> &'static str {
 
     `POST /api/users/change/<name>/<pin>/<new-name>/<new-pin>` Change a users name and/or pin"
 }
-
+/*
 // The output is wrapped in a Result to allow matching on errors
 // Returns an Iterator to the Reader of the lines of the file.
 fn read_lines<P>(filename: P) -> io::Result<io::Lines<io::BufReader<File>>>
@@ -111,10 +108,10 @@ fn write_json(users_list: &Vec<User>) -> Result<()> {
     };
     Ok(())
 }
-
+*/
 // Post request to register a user and pin
-#[post("/api/register/<name>/<pin>")]
-pub fn register_user(name: &str, pin: i32) -> String {
+#[post("/api/register/<name>/<pin>/<pronouns>")]
+pub fn register_user(name: &str, pin: i32, pronouns: &str) -> String {
     let mut users: Vec<User> = read_json(); // Create an array of users out of parsed json
     for i in &users { // loop through elements of the vector
         if i.name == name.to_lowercase() {
@@ -124,7 +121,14 @@ pub fn register_user(name: &str, pin: i32) -> String {
     };
 
     let pin_hashed = sha1::Sha1::from(&pin.to_string()).digest().to_string(); // hash the pin
-    users.push( User { name: name.to_string().to_lowercase(), pin_hashed: pin_hashed}); // append the user to the vec
+
+    users.push( User {
+        name: name.to_string().to_lowercase(),
+        pin_hashed: pin_hashed,
+        pronouns: pronouns.to_string().to_lowercase(),
+        sessionToken: "NULL".to_string()
+    }); // append the user to the vec
+
     // append to the json file
     match append_json(&users) {
         Err(why) => panic!("couldn't append json: {}", why),
@@ -212,5 +216,28 @@ pub fn get_user(name: &str) -> String {
     match found_user {
         Some(user) => format!("User {}", &user.name),
         None => "User does not exist".to_string(),
+    }
+}
+
+/* Get data about a user */
+#[get("/api/about/name/<name>")]
+pub fn get_user_name(name: &str) -> String {
+    let users: Vec<User> = read_json();
+    let found_user = users.iter().filter(|u| u.name == name.to_lowercase()).next();
+
+    match found_user {
+        Some(user) => user.name.to_string(),
+        None => "NULL".to_string(),
+    }
+}
+
+#[get("/api/about/pronouns/<name>")]
+pub fn get_user_pronouns(name: &str) -> String {
+    let users: Vec<User> = read_json();
+    let found_user = users.iter().filter(|u| u.name == name.to_lowercase()).next();
+
+    match found_user {
+        Some(user) => user.pronouns.to_string(),
+        None => "NULL".to_string(),
     }
 }
