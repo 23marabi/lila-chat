@@ -83,7 +83,7 @@ pub fn write_json(users_list: &Vec<User>) -> Result<()> {
     for i in 0..users_list.len() {
         // Serialize the users
         users_json += &serde_json::to_string(&users_list[i])?;
-        if i <= users_list.len()-2 { // don't append newline if it's the last element
+        if i != users_list.len()-1 { // don't append newline if it's the last element
             users_json += "\n";
         }
     }
