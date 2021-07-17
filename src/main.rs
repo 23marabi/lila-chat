@@ -126,14 +126,14 @@ fn write_json(users_list: &Vec<User>) -> Result<()> {
 fn register_user(name: &str, pin: i32) -> String {
     let mut users: Vec<User> = read_json(); // Create an array of users out of parsed json
     for i in &users { // loop through elements of the vector
-        if i.name == name {
+        if i.name == name.to_lowercase() {
             return "false".to_string();
         };
     };
     let pin_hashed = sha1::Sha1::from(&pin.to_string()).digest().to_string();
-    users.push(User { name: name.to_string(), pin_hashed: pin_hashed});
+    users.push(User { name: name.to_string().to_lowercase(), pin_hashed: pin_hashed});
     append_json(&users);
-    return format!("User {} registered with pin hash: {}", users[users.len()-1].name.to_string(), users[users.len()-1].pin_hashed);
+    return format!("User {} registered with pin hash: {}", users[users.len()-1].name.to_string().to_lowercase(), users[users.len()-1].pin_hashed);
 }
 
 // Check if pin matches user
@@ -142,7 +142,7 @@ fn check_pin(name: &str, pin: i32) -> String {
     let users: Vec<User> = read_json();
     let hashed_pin_input = sha1::Sha1::from(&pin.to_string()).digest().to_string();
     for i in &users { // loop through the vector
-        if i.name == name {
+        if i.name == name.to_lowercase() {
             if i.pin_hashed == hashed_pin_input {
                 return "true".to_string();
             } else {
@@ -150,31 +150,31 @@ fn check_pin(name: &str, pin: i32) -> String {
             };
         };
     };
-    return format!("User {} does not exist.", name.to_string());
+    return format!("User {} does not exist.", name.to_string().to_lowercase());
 }
 
 // Change a users pin/name
 #[post("/api/users/change/<name>/<pin>/<new_name>/<new_pin>")]
 fn change(name: &str, pin: i32, new_name: &str, new_pin: i32) -> String {
-   let mut users: Vec<User> = read_json();
+    let mut users: Vec<User> = read_json();
 
     let hashed_pin_input = sha1::Sha1::from(&pin.to_string()).digest().to_string();
     // Loop over elements in vector
     for i in 0..users.len() {
-        if users[i].name == name { // make sure name exists
+        if users[i].name == name.to_lowercase() { // make sure name exists
             if users[i].pin_hashed == hashed_pin_input { // check if pin is correct
                 // Check wether to change name or name+pin
-                if users[i].name == new_name {
+                if users[i].name == new_name.to_lowercase() {
                     users[i].pin_hashed = sha1::Sha1::from(&new_pin.to_string()).digest().to_string();
                     write_json(&users);
-                    return format!("User {}'s new pin hash is {}.", name.to_string(), users[i].pin_hashed);
+                    return format!("User {}'s new pin hash is {}.", name.to_string().to_lowercase(), users[i].pin_hashed);
                 } else {
                     // check if new name already exists
                     for n in &users {
-                        if n.name == new_name {
-                            return format!("New name {} is already taken!", new_name);
+                        if n.name == new_name.to_lowercase() {
+                            return format!("New name {} is already taken!", new_name.to_lowercase());
                         } else {
-                            users[i].name = new_name.to_string();
+                            users[i].name = new_name.to_string().to_lowercase();
                             users[i].pin_hashed = sha1::Sha1::from(&new_pin.to_string()).digest().to_string();
                             write_json(&users);
                             return format!("User previously known as {} is now {}. Pin hash, if different, is {}", name.to_string(), users[i].name.to_string(), users[i].pin_hashed.to_string());
@@ -193,7 +193,7 @@ fn change(name: &str, pin: i32, new_name: &str, new_pin: i32) -> String {
 #[get("/api/users/<name>")]
 fn get_user(name: &str) -> String {
     let users: Vec<User> = read_json();
-    let found_user = users.iter().filter(|u| u.name == name).next();
+    let found_user = users.iter().filter(|u| u.name == name.to_lowercase()).next();
 
     match found_user {
         Some(user) => format!("User {}", &user.name),
