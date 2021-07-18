@@ -9,7 +9,7 @@ form.addEventListener("submit", async function(event) {
     uname = formData.get('uname');
     pin = formData.get('pin');
 
-    const response = await fetch(`/users/${uname}/${pin}`);
+    const response = await fetch(`/api/users/${uname}/${pin}`);
     const loginInfo = await response.json();
     
     if (loginInfo.status === "ok") {
