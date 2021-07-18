@@ -8,6 +8,7 @@ pub struct MessageInput<'r> {
     pub name: &'r str,
     pub body: &'r str,
     pub date: &'r str,
+    pub token: &'r str,
 }
 
 #[derive(Debug)]
