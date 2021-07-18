@@ -1,6 +1,7 @@
 extern crate log;
 use crate::file_io::{append_json, read_json, write_json};
 use crate::user::User;
+use rocket_contrib::json::{Json, JsonValue};
 extern crate sha1;
 
 #[get("/")]
@@ -22,13 +23,16 @@ pub fn index() -> &'static str {
 
 // Post request to register a user and pin
 #[post("/api/register/<name>/<pin>/<pronouns>")]
-pub fn register_user(name: String, pin: i32, pronouns: String) -> String {
+pub fn register_user(name: String, pin: i32, pronouns: String) -> JsonValue {
     let mut users: Vec<User> = read_json(); // Create an array of users out of parsed json
     for i in &users {
         // loop through elements of the vector
         if i.name == name.to_lowercase() {
             warn!("Cannot create user {}! User is already in system.", i.name);
-            return "User already exists!".to_string();
+            return json!({
+                "status": "fail",
+                "reason": "user already exists",
+            });
         };
     }
 
@@ -52,16 +56,15 @@ pub fn register_user(name: String, pin: i32, pronouns: String) -> String {
         users[users.len() - 1].name.to_string(),
         users[users.len() - 1].pin_hashed
     );
-    return format!(
-        "User {} registered with pin hash: {}",
-        users[users.len() - 1].name.to_string().to_lowercase(),
-        users[users.len() - 1].pin_hashed
-    );
+    return json!({
+        "status": "ok",
+        "reason": format!("user {} registered", users[users.len()-1].name.to_string().to_lowercase()),
+    });
 }
 
 // Check if pin matches user
 #[get("/api/users/<name>/<pin>")]
-pub fn check_pin(name: String, pin: i32) -> String {
+pub fn check_pin(name: String, pin: i32) -> JsonValue {
     let users: Vec<User> = read_json();
     let hashed_pin_input = sha1::Sha1::from(&pin.to_string()).digest().to_string();
     for i in &users {
@@ -69,10 +72,16 @@ pub fn check_pin(name: String, pin: i32) -> String {
         if i.name == name.to_lowercase() {
             if i.pin_hashed == hashed_pin_input {
                 info!("pin correct for user {}", i.name);
-                return "pin matches".to_string();
+                return json!({
+                    "status": "ok",
+                    "reason": "pin matches",
+                });
             } else {
                 warn!("pin incorrect for user {}", i.name);
-                return "Incorrect pin".to_string();
+                return json!({
+                    "status": "fail",
+                    "reason": "incorrect pin",
+                });
             };
         };
     }
@@ -80,12 +89,15 @@ pub fn check_pin(name: String, pin: i32) -> String {
         "cannot check pin for user {} as they do not exist",
         name.to_string().to_lowercase()
     );
-    return format!("User {} does not exist.", name.to_string().to_lowercase());
+    return json!({
+        "status": "fail",
+        "reason": format!("user {} doesn't exist", name.to_string().to_lowercase()),
+    });
 }
 
 // Change a users pin/name
 #[post("/api/users/change/<name>/<pin>/<new_name>/<new_pin>")]
-pub fn change(name: String, pin: i32, new_name: String, new_pin: i32) -> String {
+pub fn change(name: String, pin: i32, new_name: String, new_pin: i32) -> JsonValue {
     let mut users: Vec<User> = read_json();
 
     let hashed_pin_input = sha1::Sha1::from(&pin.to_string()).digest().to_string();
@@ -99,18 +111,16 @@ pub fn change(name: String, pin: i32, new_name: String, new_pin: i32) -> String 
                 // Check wether to change name or name+pin
                 if users[i].name == new_name.to_lowercase() {
                     // check if new name already exists
-                    users[i].pin_hashed =
-                        sha1::Sha1::from(&new_pin.to_string()).digest().to_string();
+                    users[i].pin_hashed = sha1::Sha1::from(&new_pin.to_string()).digest().to_string();
                     match write_json(&users) {
                         Err(why) => panic!("Cannot write to json! {}", why),
                         Ok(()) => info!("succesfully wrote to json file"),
                     }
                     info!("Changed pin of {}", name.to_string().to_lowercase());
-                    return format!(
-                        "User {}'s new pin hash is {}.",
-                        name.to_string().to_lowercase(),
-                        users[i].pin_hashed
-                    );
+                    return json!({
+                        "status": "ok",
+                        "reason": format!("changed {}'s pin", name.to_string().to_lowercase()),
+                    });
                 } else {
                     // check if new name already exists
                     for n in &users {
@@ -120,10 +130,10 @@ pub fn change(name: String, pin: i32, new_name: String, new_pin: i32) -> String 
                                 name.to_lowercase(),
                                 new_name.to_lowercase()
                             );
-                            return format!(
-                                "New name {} is already taken!",
-                                new_name.to_lowercase()
-                            );
+                            return json!({
+                                "status": "fail",
+                                "reason": format!("new name {} is already taken", new_name.to_lowercase()),
+                            });
                         }
                     }
                     users[i].name = new_name.to_string().to_lowercase();
@@ -140,16 +150,17 @@ pub fn change(name: String, pin: i32, new_name: String, new_pin: i32) -> String 
                         users[i].name.to_string(),
                         users[i].pin_hashed.to_string()
                     );
-                    return format!(
-                        "User previously known as {} is now {}. Pin hash, if different, is {}",
-                        name.to_string(),
-                        users[i].name.to_string(),
-                        users[i].pin_hashed.to_string()
-                    );
+                    return json!({
+                        "status": "ok",
+                        "reason": "successfully changed name and/or pin",
+                    });
                 }
             } else {
                 warn!("Incorrect pin given for user {}!", name.to_string());
-                return format!("Incorrect pin for user {}!", name.to_string());
+                return json!({
+                    "status": "fail",
+                    "reason": "incorrect pin for user",
+                });
             }
         }
     }
@@ -157,11 +168,14 @@ pub fn change(name: String, pin: i32, new_name: String, new_pin: i32) -> String 
         "User {} not found, could not change pin and/or name.",
         name.to_string()
     );
-    return format!("User {} not found.", name.to_string());
+    return json!({
+        "status": "fail",
+        "reason": format!("user {} not found", name.to_string().to_lowercase()),
+    });
 }
 
 #[get("/api/users/<name>")]
-pub fn get_user(name: String) -> String {
+pub fn get_user(name: String) -> JsonValue {
     let users: Vec<User> = read_json();
     let found_user = users
         .iter()
@@ -169,36 +183,16 @@ pub fn get_user(name: String) -> String {
         .next();
 
     match found_user {
-        Some(user) => format!("User {}", &user.name),
-        None => "User does not exist".to_string(),
-    }
-}
-
-/* Get data about a user */
-#[get("/api/about/name/<name>")]
-pub fn get_user_name(name: String) -> String {
-    let users: Vec<User> = read_json();
-    let found_user = users
-        .iter()
-        .filter(|u| u.name == name.to_lowercase())
-        .next();
-
-    match found_user {
-        Some(user) => user.name.to_string(),
-        None => "NULL".to_string(),
-    }
-}
-
-#[get("/api/about/pronouns/<name>")]
-pub fn get_user_pronouns(name: String) -> String {
-    let users: Vec<User> = read_json();
-    let found_user = users
-        .iter()
-        .filter(|u| u.name == name.to_lowercase())
-        .next();
-
-    match found_user {
-        Some(user) => user.pronouns.to_string(),
-        None => "NULL".to_string(),
+        Some(user) => json!({
+            "status":"ok",
+            "user": {
+                "name": user.name,
+                "pronouns": user.pronouns,
+            },
+        }),
+        None => json!({
+            "status": "fail",
+            "reason": format!("user {} not found", name),
+        }),
     }
 }
