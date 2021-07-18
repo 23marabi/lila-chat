@@ -35,7 +35,7 @@ form.addEventListener("submit", async function(event) {
     try {
     const userNotFound = await getUname();
 
-    if (userNotFound !== `User ${uname}`) {
+    if (userNotFound.status == `fail`) {
       document.querySelector("#incorrect").innerHTML = `user ${uname} was not found`
     } else {
       loginChange()
@@ -47,8 +47,8 @@ form.addEventListener("submit", async function(event) {
 
 async function getUname() {
   let response = await fetch(`/api/users/${uname}`);
-  responseText = await response.text();
-  return responseText;
+  responseJson = await response.json();
+  return responseJson;
 }
 
 async function loginChange() {
