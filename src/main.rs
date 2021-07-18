@@ -37,7 +37,6 @@ fn main() {
                 chat::fetch_messages
             ],
         )
-        .mount("/", routes![auth::index])
         .mount("/", StaticFiles::from("frontend"))
         .attach(cors_fairing)
         .launch();
