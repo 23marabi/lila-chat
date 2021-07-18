@@ -29,7 +29,11 @@ or
 `GET /api/users/<name>/<pin>` Check if the user exists, and if the pin provided matches
 Returns status & reason json.
 
-`POST /api/users/change/<name>/<pin>/<new-name>/<new-pin>` Change a users pin/name
+`POST /api/users/change {"name":"<username>","pin":"<pin>","changed_event":"name/pin/pronouns","new_event":"<new name/pin/pronouns>"` Change a users details via a json post.
+
+eg. `POST /api/users/change {"name":"example","pin":"10","changed_event":"name","new_event":"test"` to change the user "example"'s name to "test"
+
+DEPRECATED `POST /api/users/change/<name>/<pin>/<new-name>/<new-pin>` Change a users pin/name
 Returns status & reason json.
 
 

@@ -34,7 +34,8 @@ fn main() {
                 auth::check_pin,
                 auth::change,
                 chat::send_message,
-                chat::fetch_messages
+                chat::fetch_messages,
+                auth::change_info
             ],
         )
         .mount("/", StaticFiles::from("frontend"))

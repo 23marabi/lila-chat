@@ -2,9 +2,10 @@ extern crate log;
 use crate::file_io::{append_json, read_json, write_json};
 use rocket::http::{Cookie, Cookies};
 use crate::user::User;
-use rocket_contrib::json::JsonValue;
+use rocket_contrib::json::{Json, JsonValue};
 use random_string::generate;
 extern crate sha1;
+use serde::Deserialize;
 
 #[get("/")]
 pub fn index() -> &'static str {
@@ -60,7 +61,7 @@ pub fn register_user(name: String, pin: i32, pronouns: String) -> JsonValue {
     );
     return json!({
         "status": "ok",
-        "reason": format!("user {} registered", users[users.len()-1].name.to_string().to_lowercase()),
+        "reason": format!("user {} registered", new_user.name.to_string().to_lowercase()),
     });
 }
 
@@ -118,6 +119,70 @@ pub fn check_pin(mut cookies: Cookies, name: String, pin: i32) -> JsonValue {
     return json!({
         "status": "fail",
         "reason": format!("user {} doesn't exist", name.to_string().to_lowercase()),
+    });
+}
+
+#[derive(Deserialize)]
+pub struct Event {
+    pub name: String,
+    pub pin: String,
+    pub changed_event: String,
+    pub new_event: String,
+}
+
+// Change info about a user
+#[post("/users/change", format = "json", data = "<input>")]
+pub fn change_info(input: Json<Event>) -> JsonValue {
+    // read in the users & hash the pin
+    let mut users: Vec<User> = read_json();
+    let hashed_pin = sha1::Sha1::from(&input.pin).digest().to_string();
+
+    // loop through the users
+    for i in 0..users.len() {
+        if input.name.to_lowercase() == users[i].name { // if user found...
+            if hashed_pin == users[i].pin_hashed { // & if pin matches:
+                if input.changed_event == "name" {
+                    // change the name
+                    users[i].name = input.new_event.clone();
+                    info!("changed name of {} to {}", input.name, input.new_event);
+                    write_json(&users);
+                    return json!({
+                        "status": "ok",
+                        "reason": format!("changed name of {} to {}", input.name, input.new_event),
+                    });
+                } else if input.changed_event == "pin" {
+                    // change the pin
+                    let new_hashed_pin = sha1::Sha1::from(&input.new_event).digest().to_string();
+                    users[i].pin_hashed = new_hashed_pin.clone();
+                    write_json(&users);
+                    info!("changed pin of {}", input.name);
+                    return json!({
+                        "status": "ok",
+                        "reason": "changed pin",
+                    });
+                } else if input.changed_event == "pronouns" {
+                    // change the pronouns
+                    users[i].pronouns = input.new_event.clone();
+                    info!("changed pronouns of {} to {}", input.name, input.new_event);
+                    write_json(&users);
+                    return json!({
+                        "status": "ok",
+                        "reason": "successfully changed pronouns",
+                    });
+                };
+            } else {
+                warn!("incorrect pin for user {}", input.name);
+                return json!({
+                    "status": "fail",
+                    "reason": "incorrect pin",
+                });
+            };
+        };
+    };
+    warn!("couldn't change users info, user does not exist");
+    return json!({
+        "status": "fail",
+        "reason": "user doesn't exist",
     });
 }
 
