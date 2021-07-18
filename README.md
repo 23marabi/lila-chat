@@ -49,17 +49,16 @@ Whenever user sends a message, client will send message & token and backend will
 ## To-Do:
 
 - [x] Basic auth API
-- [ ] Return json instead of string
+- [x] Return json instead of string
 	- "status" shows wether request was succesful or not, either "ok" or "fail"
 	- "reason" is for more details, mainly just for debugging?
 - [x] Basic messaging system
 	- [x] Finish up `chat::create_message()`
 	- [x] Create `chat::fetch_messages()`
 	- [ ] Create `chat::delete_message()`
-- [ ] Token generation & storage
-	- [ ] API to refresh token
-	- [ ] Store token in json
-	- [ ] API to check token?
+- [x] Token generation & storage
+	- [x] Sets cookie
+	- [x] Store token in json
 - [x] Pronouns
 	- [x] Set pronouns
 	- [ ] Change pronouns

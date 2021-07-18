@@ -73,12 +73,13 @@ fn create_token(name: String, mut users: Vec<User>) -> String {
             return token;
         };
     };
+    warn!("something bad happened while creating a token and idk what");
     return "NULL".to_string();
 }
 
 // Check if pin matches user
 #[get("/users/<name>/<pin>")]
-pub fn check_pin(name: String, pin: i32) -> JsonValue {
+pub fn check_pin(mut cookies: Cookies, name: String, pin: i32) -> JsonValue {
     let users: Vec<User> = read_json();
     let hashed_pin_input = sha1::Sha1::from(&pin.to_string()).digest().to_string();
     for i in &users {
@@ -87,6 +88,10 @@ pub fn check_pin(name: String, pin: i32) -> JsonValue {
             if i.pin_hashed == hashed_pin_input {
                 info!("pin correct for user {}", i.name);
                 // Create token for user & set a cookie
+                let token = create_token(i.name.clone(), users);
+                cookies.add(Cookie::new("token", token));
+                info!("set the token cookie");
+
                 return json!({
                     "status": "ok",
                     "reason": "pin matches",
