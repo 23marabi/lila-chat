@@ -55,10 +55,9 @@ async function loginChange() {
 const rawResponse = await fetch(`/api/users/change/${uname}/${pin}/${newUname}/${newPin}`, {
     method: 'POST',
     headers: {
-      'Accept': 'text/plain'
     },
     body: ""
 });
 document.querySelector("#incorrect").innerHTML = 'Login Changed!'
-window.location.replace("/login.html")
+window.location.replace("http://127.0.0.1:5500/login.html")
 }
