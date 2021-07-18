@@ -1,11 +1,24 @@
 /* Contains Rocket code for chat/message functionality */
 extern crate log;
+use once_cell::sync::Lazy;
+use std::sync::Mutex;
 use crate::file_io::read_json;
 use crate::message::{Message, MessageInput};
 use rocket_contrib::json::{Json, JsonValue};
 use chrono::prelude::*;
 use uuid::Uuid;
 use crate::user::User;
+
+static MESSAGES: Lazy<Mutex<Vec<Message>>> = Lazy::new(|| Mutex::new(Vec::new()));
+
+#[get("/api/message/messages.json")]
+pub fn fetch_messages() -> Json<Vec<Message>> {
+    let messages = {
+        let messages = MESSAGES.lock().unwrap();
+        messages.to_vec()
+    };
+    Json(messages)
+}
 
 // Create full message object and write to file
 fn create_message(message: Json<MessageInput>, file: &str, user: &User) -> JsonValue {
@@ -37,7 +50,9 @@ fn create_message(message: Json<MessageInput>, file: &str, user: &User) -> JsonV
         body: message.body.to_string(),
         created_at: date,
     };
-    println!("{:?}", message_obj);
+    info!("created mesage: {:?}", message_obj);
+    let mut messages = MESSAGES.lock().unwrap();
+    messages.push(message_obj.to_owned());
     return json!({
         "status": "ok",
         "reason": "message created",

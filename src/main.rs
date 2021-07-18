@@ -34,7 +34,8 @@ fn main() {
                 auth::change,
                 auth::get_user_name,
                 auth::get_user_pronouns,
-                chat::send_message
+                chat::send_message,
+                chat::fetch_messages
             ],
         )
         .attach(cors_fairing)

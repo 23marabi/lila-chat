@@ -11,7 +11,7 @@ pub struct MessageInput<'r> {
     pub token: &'r str,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct Message {
     pub id: Uuid,
     pub user: User,

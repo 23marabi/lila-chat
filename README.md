@@ -30,8 +30,8 @@ Whenever user sends a message, client will send message & token and backend will
 	- status is main thing to deal with, ok/fail/panic
 	- reason is for more details, mainly just for debugging?
 - [ ] Basic messaging system
-	- [ ] Finish up `chat::create_message()`
-	- [ ] Create `chat::read_messages()`
+	- [x] Finish up `chat::create_message()`
+	- [x] Create `chat::fetch_messages()`
 	- [ ] Create `chat::delete_message()`
 	- [ ] Different types of message events? eg. default, announcement, command
 	- [ ] Emote support?
