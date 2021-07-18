@@ -2,7 +2,8 @@ extern crate log;
 use crate::file_io::{append_json, read_json, write_json};
 use rocket::http::{Cookie, Cookies};
 use crate::user::User;
-use rocket_contrib::{json::Json, json::JsonValue, serve::StaticFiles};
+use rocket_contrib::json::JsonValue;
+use random_string::generate;
 extern crate sha1;
 
 #[get("/")]
@@ -39,15 +40,15 @@ pub fn register_user(name: String, pin: i32, pronouns: String) -> JsonValue {
 
     let pin_hashed = sha1::Sha1::from(&pin.to_string()).digest().to_string(); // hash the pin
 
-    users.push(User {
+    let new_user: User = User {
         name: name.to_string().to_lowercase(),
         pin_hashed: pin_hashed,
         pronouns: pronouns.to_string().to_lowercase(),
         session_token: "NULL".to_string(),
-    }); // append the user to the vec
+    }; // append the user to the vec
 
     // append to the json file
-    match append_json(&users[users.len()-1]) {
+    match append_json(&new_user) {
         Err(why) => panic!("couldn't append json: {}", why),
         Ok(()) => info!("Succesfully appended to json"),
     };
@@ -64,10 +65,15 @@ pub fn register_user(name: String, pin: i32, pronouns: String) -> JsonValue {
 }
 
 fn create_token(name: String, mut users: Vec<User>) -> String {
+    let charset = "1234567890abcdefghijklmnopqrstuvwxyz";
+
     for i in 0..users.len() {
         if users[i].name == name {
-            users[i].session_token = "token".to_string();
-            append_json(&users[i]);
+            users[i].session_token = generate(12, charset);
+            match write_json(&users) {
+                Err(why) => panic!("coudln't write to file: {}", why),
+                Ok(()) => info!("succesfully wrote to file"),
+            };
             info!("succesfully created token for user {}", name);
             let token = users[i].session_token.clone();
             return token;

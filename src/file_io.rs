@@ -63,7 +63,7 @@ pub fn append_json(user: &User) -> Result<()> {
     // Add newline
     match file.write_all("\n".as_bytes()) {
         Err(why) => panic!("couldn't write to {}: {}", display, why),
-        Ok(_) => info!("succesfully wrote to {}", display),
+        Ok(_) => info!("succesfully wrote newline to {}", display),
     };
     Ok(())
 }
@@ -83,10 +83,10 @@ pub fn write_json(users_list: &Vec<User>) -> Result<()> {
     for i in 0..users_list.len() {
         // Serialize the users
         users_json += &serde_json::to_string(&users_list[i])?;
-        if i != users_list.len() - 1 {
+        //if i != users_list.len() - 1 {
             // don't append newline if it's the last element
             users_json += "\n";
-        }
+        //}
     }
 
     // Write to the file
