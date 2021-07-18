@@ -1,7 +1,7 @@
-use uuid::Uuid;
-use chrono::prelude::*;
 use crate::user::User;
+use chrono::prelude::*;
 use serde::{Deserialize, Serialize};
+use uuid::Uuid;
 
 #[derive(Deserialize, Serialize)]
 pub struct Message<'r> {
