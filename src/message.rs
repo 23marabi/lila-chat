@@ -1,15 +1,12 @@
 use uuid::Uuid;
 use chrono::prelude::*;
 use crate::user::User;
-use serde::{Deserialize, Serialize};
+use rocket::serde::{Deserialize, Serialize};
 
 #[derive(Deserialize, Serialize)]
-pub struct Message {
-    /*
+pub struct Message<'r> {
     pub id: Uuid,
     pub user: User,
-    pub body: String,
-    pub created_at: DateTime<Utc>, */
-    id: u8,
-    body: String,
+    pub body: &'r str,
+    pub created_at: DateTime<Utc>,
 }
