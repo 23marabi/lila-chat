@@ -9,30 +9,15 @@ form.addEventListener("submit", async function(event) {
     uname = formData.get('uname');
     pin = formData.get('pin');
 
-    try {
-    const loginInfo = await loginFetch();
-
-    if (loginInfo === "pin matches") {
-        login()
-    } else if (loginInfo === "Incorrect pin" || loginInfo === `User ${uname} does not exist.`) {
-        incorrectLogin()
-    }
-    } catch {
-        document.querySelector("#incorrect").innerHTML = 'An Error has Occurred. Try again later.'
+    const response = await fetch(`/users/${uname}/${pin}`);
+    const loginInfo = await response.json();
+    
+    if (loginInfo.status === "ok") {
+      login()
+    } else {
+      incorrectLogin()
     }
 })
-
-async function loginFetch() {
-    const rawResponse = await fetch(`/api/users/${uname}/${pin}`, {
-        // credentials: "include",
-        method: 'GET',
-        headers: {
-            'Accept': 'text/plain'
-          },
-});
-const content = await rawResponse.text();
-return content
-}
 
 function login() {
     console.log('You have logged in!')

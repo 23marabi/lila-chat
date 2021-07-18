@@ -36,7 +36,7 @@ form.addEventListener("submit", async function(event) {
 })
 
 async function getUname() {
-  let response = await fetch(`/api/users/${uname}`);
+  let response = await fetch(`$/api/users/${uname}`);
   responseText = await response.text();
   return responseText;
 }
@@ -45,11 +45,10 @@ async function register() {
 const rawResponse = await fetch(`/api/register/${uname.toString().toLowerCase()}/${pin.toString()}/${pronouns.toString().toLowerCase().replace("/", ".")}`, {
     method: 'POST',
     headers: {
-      'Accept': 'text/plain'
     },
     body: ""
 });
 document.querySelector("#taken").innerHTML = 'Registered!'
-window.location.replace("/login.html")
+window.location.replace("http://127.0.0.1:5500/login.html")
 }
 
