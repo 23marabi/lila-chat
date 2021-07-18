@@ -49,6 +49,6 @@ const rawResponse = await fetch(`/api/register/${uname.toString().toLowerCase()}
     body: ""
 });
 document.querySelector("#taken").innerHTML = 'Registered!'
-window.location.replace("http://127.0.0.1:5500/login.html")
+window.location.replace("/login.html")
 }
 
