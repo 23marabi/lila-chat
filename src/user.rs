@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 
 // Struct to store basic user data
-#[derive(Clone, Serialize, Deserialize)]
+#[derive(Clone, Serialize, Deserialize, Debug)]
 pub struct User {
     pub name: String,
     pub pin_hashed: String,

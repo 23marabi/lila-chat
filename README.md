@@ -27,8 +27,18 @@ Whenever user sends a message, client will send message & token and backend will
 
 - [x] Basic auth api
 - [ ] Basic messaging system
+	- [ ] Finish up `chat::create_message()`
+	- [ ] Create `chat::read_messages()`
+	- [ ] Create `chat::delete_message()`
+	- [ ] Different types of message events? eg. default, announcement, command
+	- [ ] Emote support?
 - [ ] Token generation & storage
+	- [ ] API to refresh token
+	- [ ] Store token in json
+	- [ ] API to check token?
 - [x] Pronouns
-- [ ] Change pronouns
+	- [ ] Change pronouns
+	- [ ] Multiple sets of pronouns
+- [ ] Some form of plural support?
 - [ ] User management (banning, etc.)
 - [ ] Blacklist words from chat/names

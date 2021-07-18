@@ -4,9 +4,16 @@ use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
 #[derive(Deserialize, Serialize)]
-pub struct Message<'r> {
+pub struct MessageInput<'r> {
+    pub name: &'r str,
+    pub body: &'r str,
+    pub date: &'r str,
+}
+
+#[derive(Debug)]
+pub struct Message {
     pub id: Uuid,
     pub user: User,
-    pub body: &'r str,
+    pub body: String,
     pub created_at: DateTime<Utc>,
 }
