@@ -26,6 +26,9 @@ Whenever user sends a message, client will send message & token and backend will
 ## To-Do:
 
 - [x] Basic auth api
+- [ ] Return json instead of string
+	- status is main thing to deal with, ok/fail/panic
+	- reason is for more details, mainly just for debugging?
 - [ ] Basic messaging system
 	- [ ] Finish up `chat::create_message()`
 	- [ ] Create `chat::read_messages()`
