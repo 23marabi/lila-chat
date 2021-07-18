@@ -6,6 +6,7 @@ extern crate log;
 extern crate rocket;
 #[macro_use]
 extern crate rocket_contrib;
+use rocket_contrib::serve::StaticFiles;
 
 use rocket::fairing::AdHoc;
 
@@ -25,7 +26,7 @@ fn main() {
 
     rocket::ignite()
         .mount(
-            "/",
+            "/api",
             routes![
                 auth::index,
                 auth::get_user,
@@ -36,6 +37,8 @@ fn main() {
                 chat::fetch_messages
             ],
         )
+        .mount("/", routes![auth::index])
+        .mount("/", StaticFiles::from("frontend"))
         .attach(cors_fairing)
         .launch();
 }

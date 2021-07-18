@@ -36,7 +36,7 @@ form.addEventListener("submit", async function(event) {
 })
 
 async function getUname() {
-  let response = await fetch(`$/api/users/${uname}`);
+  let response = await fetch(`/api/users/${uname}`);
   responseText = await response.text();
   return responseText;
 }
@@ -50,6 +50,6 @@ const rawResponse = await fetch(`/api/register/${uname.toString().toLowerCase()}
     body: ""
 });
 document.querySelector("#taken").innerHTML = 'Registered!'
-window.location.replace("http://127.0.0.1:5500/login.html")
+window.location.replace("/login.html")
 }
 

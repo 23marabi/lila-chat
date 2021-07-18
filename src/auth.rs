@@ -1,7 +1,8 @@
 extern crate log;
 use crate::file_io::{append_json, read_json, write_json};
+use rocket::http::{Cookie, Cookies};
 use crate::user::User;
-use rocket_contrib::json::{Json, JsonValue};
+use rocket_contrib::{json::Json, json::JsonValue, serve::StaticFiles};
 extern crate sha1;
 
 #[get("/")]
@@ -22,7 +23,7 @@ pub fn index() -> &'static str {
 }
 
 // Post request to register a user and pin
-#[post("/api/register/<name>/<pin>/<pronouns>")]
+#[post("/register/<name>/<pin>/<pronouns>")]
 pub fn register_user(name: String, pin: i32, pronouns: String) -> JsonValue {
     let mut users: Vec<User> = read_json(); // Create an array of users out of parsed json
     for i in &users {
@@ -46,7 +47,7 @@ pub fn register_user(name: String, pin: i32, pronouns: String) -> JsonValue {
     }); // append the user to the vec
 
     // append to the json file
-    match append_json(&users) {
+    match append_json(&users[users.len()-1]) {
         Err(why) => panic!("couldn't append json: {}", why),
         Ok(()) => info!("Succesfully appended to json"),
     };
@@ -62,8 +63,21 @@ pub fn register_user(name: String, pin: i32, pronouns: String) -> JsonValue {
     });
 }
 
+fn create_token(name: String, mut users: Vec<User>) -> String {
+    for i in 0..users.len() {
+        if users[i].name == name {
+            users[i].session_token = "token".to_string();
+            append_json(&users[i]);
+            info!("succesfully created token for user {}", name);
+            let token = users[i].session_token.clone();
+            return token;
+        };
+    };
+    return "NULL".to_string();
+}
+
 // Check if pin matches user
-#[get("/api/users/<name>/<pin>")]
+#[get("/users/<name>/<pin>")]
 pub fn check_pin(name: String, pin: i32) -> JsonValue {
     let users: Vec<User> = read_json();
     let hashed_pin_input = sha1::Sha1::from(&pin.to_string()).digest().to_string();
@@ -72,6 +86,7 @@ pub fn check_pin(name: String, pin: i32) -> JsonValue {
         if i.name == name.to_lowercase() {
             if i.pin_hashed == hashed_pin_input {
                 info!("pin correct for user {}", i.name);
+                // Create token for user & set a cookie
                 return json!({
                     "status": "ok",
                     "reason": "pin matches",
@@ -96,7 +111,7 @@ pub fn check_pin(name: String, pin: i32) -> JsonValue {
 }
 
 // Change a users pin/name
-#[post("/api/users/change/<name>/<pin>/<new_name>/<new_pin>")]
+#[post("/users/change/<name>/<pin>/<new_name>/<new_pin>")]
 pub fn change(name: String, pin: i32, new_name: String, new_pin: i32) -> JsonValue {
     let mut users: Vec<User> = read_json();
 
@@ -174,7 +189,7 @@ pub fn change(name: String, pin: i32, new_name: String, new_pin: i32) -> JsonVal
     });
 }
 
-#[get("/api/users/<name>")]
+#[get("/users/<name>")]
 pub fn get_user(name: String) -> JsonValue {
     let users: Vec<User> = read_json();
     let found_user = users

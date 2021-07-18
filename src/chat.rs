@@ -11,7 +11,7 @@ use crate::user::User;
 
 static MESSAGES: Lazy<Mutex<Vec<Message>>> = Lazy::new(|| Mutex::new(Vec::new()));
 
-#[get("/api/message/messages.json")]
+#[get("/message/messages.json")]
 pub fn fetch_messages() -> Json<Vec<Message>> {
     let messages = {
         let messages = MESSAGES.lock().unwrap();
@@ -87,7 +87,7 @@ fn check_token(message: Json<MessageInput>) -> JsonValue {
 }
 
 // Receive a basic message
-#[post("/api/message/send", format = "json", data = "<message>")]
+#[post("/message/send", format = "json", data = "<message>")]
 pub fn send_message(message: Json<MessageInput<'_>>) -> JsonValue {
     check_token(message)
 }
