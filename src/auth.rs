@@ -2,7 +2,7 @@ extern crate log;
 use crate::user::User;
 use crate::file_io::{read_json, append_json, write_json};
 extern crate sha1;
-use serde_json::Result;
+
 
 #[get("/")]
 pub fn index() -> &'static str {
@@ -23,7 +23,7 @@ pub fn index() -> &'static str {
 
 // Post request to register a user and pin
 #[post("/api/register/<name>/<pin>/<pronouns>")]
-pub fn register_user(name: &str, pin: i32, pronouns: &str) -> String {
+pub fn register_user(name: String, pin: i32, pronouns: String) -> String {
     let mut users: Vec<User> = read_json(); // Create an array of users out of parsed json
     for i in &users { // loop through elements of the vector
         if i.name == name.to_lowercase() {
@@ -38,7 +38,7 @@ pub fn register_user(name: &str, pin: i32, pronouns: &str) -> String {
         name: name.to_string().to_lowercase(),
         pin_hashed: pin_hashed,
         pronouns: pronouns.to_string().to_lowercase(),
-        sessionToken: "NULL".to_string()
+        session_token: "NULL".to_string()
     }); // append the user to the vec
 
     // append to the json file
@@ -53,7 +53,7 @@ pub fn register_user(name: &str, pin: i32, pronouns: &str) -> String {
 
 // Check if pin matches user
 #[get("/api/users/<name>/<pin>")]
-pub fn check_pin(name: &str, pin: i32) -> String {
+pub fn check_pin(name: String, pin: i32) -> String {
     let users: Vec<User> = read_json();
     let hashed_pin_input = sha1::Sha1::from(&pin.to_string()).digest().to_string();
     for i in &users { // loop through the vector
@@ -73,7 +73,7 @@ pub fn check_pin(name: &str, pin: i32) -> String {
 
 // Change a users pin/name
 #[post("/api/users/change/<name>/<pin>/<new_name>/<new_pin>")]
-pub fn change(name: &str, pin: i32, new_name: &str, new_pin: i32) -> String {
+pub fn change(name: String, pin: i32, new_name: String, new_pin: i32) -> String {
     let mut users: Vec<User> = read_json();
 
     let hashed_pin_input = sha1::Sha1::from(&pin.to_string()).digest().to_string();
@@ -121,7 +121,7 @@ pub fn change(name: &str, pin: i32, new_name: &str, new_pin: i32) -> String {
 }
 
 #[get("/api/users/<name>")]
-pub fn get_user(name: &str) -> String {
+pub fn get_user(name: String) -> String {
     let users: Vec<User> = read_json();
     let found_user = users.iter().filter(|u| u.name == name.to_lowercase()).next();
 
@@ -133,7 +133,7 @@ pub fn get_user(name: &str) -> String {
 
 /* Get data about a user */
 #[get("/api/about/name/<name>")]
-pub fn get_user_name(name: &str) -> String {
+pub fn get_user_name(name: String) -> String {
     let users: Vec<User> = read_json();
     let found_user = users.iter().filter(|u| u.name == name.to_lowercase()).next();
 
@@ -144,7 +144,7 @@ pub fn get_user_name(name: &str) -> String {
 }
 
 #[get("/api/about/pronouns/<name>")]
-pub fn get_user_pronouns(name: &str) -> String {
+pub fn get_user_pronouns(name: String) -> String {
     let users: Vec<User> = read_json();
     let found_user = users.iter().filter(|u| u.name == name.to_lowercase()).next();
 

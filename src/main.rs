@@ -1,30 +1,42 @@
-#[macro_use] extern crate log;
-#[macro_use] extern crate rocket;
-#[macro_use] extern crate rocket_contrib;
+#![feature(proc_macro_hygiene, decl_macro)]
+
+#[macro_use]
+extern crate log;
+#[macro_use]
+extern crate rocket;
+#[macro_use]
+extern crate rocket_contrib;
 
 use rocket::fairing::AdHoc;
 
 mod auth;
-mod user;
-mod message;
-mod file_io;
 mod chat;
+mod file_io;
+mod message;
+mod user;
 
-#[launch]
-fn rocket() -> _ {
+fn main() {
     env_logger::init();
     info!("Started up rocket");
     let cors_fairing = AdHoc::on_response("CORS", |_, res| {
-        Box::pin(async move {
-            res.set_raw_header("Access-Control-Allow-Origin", "*");
-        })
+        res.set_raw_header("Access-Control-Allow-Origin", "*");
     });
     info!("Built CORS fairing");
 
-    rocket::build()
+    rocket::ignite()
         .mount(
             "/",
-            routes![auth::index, auth::get_user, auth::register_user, auth::check_pin, auth::change, auth::get_user_name, auth::get_user_pronouns, chat::send_message],
+            routes![
+                auth::index,
+                auth::get_user,
+                auth::register_user,
+                auth::check_pin,
+                auth::change,
+                auth::get_user_name,
+                auth::get_user_pronouns,
+                chat::send_message
+            ],
         )
         .attach(cors_fairing)
+        .launch();
 }

@@ -1,7 +1,7 @@
 /* Contains Rocket code for chat/message functionality */
 extern crate log;
 use crate::message::Message;
-use rocket::serde::json::{Json, JsonValue};
+use rocket_contrib::json::{Json, JsonValue};
 
 #[post("/api/message/send", format = "json", data = "<message>")]
 pub fn send_message(message: Json<Message<'_>>) -> JsonValue {

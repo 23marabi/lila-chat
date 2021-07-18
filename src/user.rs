@@ -6,5 +6,6 @@ pub struct User {
     pub name: String,
     pub pin_hashed: String,
     pub pronouns: String,
-    pub sessionToken: String,
+    #[serde(rename = "sessionToken")]
+    pub session_token: String,
 }
