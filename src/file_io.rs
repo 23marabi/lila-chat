@@ -7,7 +7,9 @@ use crate::user::User;
 use serde_json::Result;
 
 fn read_lines<P>(filename: P) -> io::Result<io::Lines<io::BufReader<File>>>
-where P: AsRef<Path>, {
+where
+    P: AsRef<Path>,
+{
     let file = File::open(filename)?;
     Ok(io::BufReader::new(file).lines())
 }
@@ -35,22 +37,23 @@ pub fn read_json() -> Vec<User> {
 }
 
 // Function to append the last value of the users vector to the file
-pub fn append_json(users_list: &Vec<User>)  -> Result<()> {
+pub fn append_json(users_list: &Vec<User>) -> Result<()> {
     // Create a file to write to
     let path = Path::new("users.json");
     let display = path.display();
 
     let mut file = match OpenOptions::new()
-    .write(true)
-    .create(true)
-    .append(true)
-    .open(&path){
+        .write(true)
+        .create(true)
+        .append(true)
+        .open(&path)
+    {
         Err(why) => panic!("couldn't create {}: {}", display, why),
         Ok(file) => file,
     };
 
     // Serialize the last user value
-    let users_json = serde_json::to_string(&users_list[users_list.len()-1])?;
+    let users_json = serde_json::to_string(&users_list[users_list.len() - 1])?;
 
     // Write to the file
     match file.write_all(users_json.as_bytes()) {
@@ -71,19 +74,17 @@ pub fn write_json(users_list: &Vec<User>) -> Result<()> {
     let path = Path::new("users.json");
     let display = path.display();
 
-    let mut file = match OpenOptions::new()
-    .write(true)
-    .create(true)
-    .open(&path){
+    let mut file = match OpenOptions::new().write(true).create(true).open(&path) {
         Err(why) => panic!("couldn't create {}: {}", display, why),
         Ok(file) => file,
     };
-    
+
     let mut users_json = String::new();
     for i in 0..users_list.len() {
         // Serialize the users
         users_json += &serde_json::to_string(&users_list[i])?;
-        if i != users_list.len()-1 { // don't append newline if it's the last element
+        if i != users_list.len() - 1 {
+            // don't append newline if it's the last element
             users_json += "\n";
         }
     }
