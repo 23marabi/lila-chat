@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+
+    <head>
+        <title>Login Change</title>
+        <meta name="author" content="Luna">
+        <meta name="description" content="Chat Login Change">
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <meta charset="UTF-8">
+        <link rel="stylesheet" href="style.css">
+        <link rel="icon" href="">
+    </head>
+
+    <body>
+
+        <h1>Change username and/or pin:</h1>
+        <p>(leave field blank if not changing)</p>
+
+        <div id="box">
+            <form>
+                <label for="uname">Current Username:</label><br>
+                <input type="text" id="uname" name="uname" required><br>
+
+                <label for="pin">Current Pin:</label><br>
+                <input type="number" id="pin" name="pin" required><br><br>
+
+                <label for="newuname">New Username:</label><br>
+                <input type="number" id="newuname" name="newuname"><br>
+
+                <label for="newpin">New Pin:</label><br>
+                <input type="number" id="newpin" name="newpin"><br><br>
+
+                <input type="submit" value="Change">
+              </form> 
+        </div>
+
+        <script src="loginchange.js"></script>
+
+        <div id="incorrect"></div>
+    </body>
+</html>

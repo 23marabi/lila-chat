@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+
+    <head>
+        <title>Register</title>
+        <meta name="author" content="Luna">
+        <meta name="description" content="Chat Register">
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <meta charset="UTF-8">
+        <link rel="stylesheet" href="style.css">
+        <link rel="icon" href="">
+    </head>
+
+    <h1>Register:</h1>
+
+    <body>
+        <div id="box">
+            <form>
+                <label for="uname">Username:</label><br>
+                <input type="text" id="uname" name="uname" required><br>
+
+                <label for="pin">Pin:</label><br>
+                <input type="number" id="pin" name="pin" required><br><br>
+
+                <label for="selected">Pronouns:</label><br>
+                <select id="selected" name="selected">
+                    <option value="nothing"></option>
+                    <option value="she.her">she/her</option>
+                    <option value="he.him">he/him</option>
+                    <option value="they.them">they/them</option>
+                    <option value="it.its">it</option>
+                    <option value="fae.faer">fae/faer</option>
+                  </select>
+
+                  <p>Or.</p>
+
+                  <label for="custom">Custom Pronouns:</label><br>
+                  <input type="text" id="custom" name="custom">
+
+                  <p>Format: pronoun/otherpronoun</p><br>
+
+                <input type="submit" value="Register">
+              </form> 
+        </div>
+
+        <div id="taken"></div>
+
+        <script src="register.js"></script>
+
+    </body>
+</html>
