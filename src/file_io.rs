@@ -37,7 +37,7 @@ pub fn read_json() -> Vec<User> {
 }
 
 // Function to append the last value of the users vector to the file
-pub fn append_json(users_list: &Vec<User>) -> Result<()> {
+pub fn append_json(user: &User) -> Result<()> {
     // Create a file to write to
     let path = Path::new("users.json");
     let display = path.display();
@@ -53,10 +53,10 @@ pub fn append_json(users_list: &Vec<User>) -> Result<()> {
     };
 
     // Serialize the last user value
-    let users_json = serde_json::to_string(&users_list[users_list.len() - 1])?;
+    let user_json = serde_json::to_string(&user)?;
 
     // Write to the file
-    match file.write_all(users_json.as_bytes()) {
+    match file.write_all(user_json.as_bytes()) {
         Err(why) => panic!("couldn't write to {}: {}", display, why),
         Ok(_) => info!("succesfully wrote to {}", display),
     };
