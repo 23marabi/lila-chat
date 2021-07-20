@@ -122,7 +122,7 @@ pub fn check_pin(mut cookies: Cookies, name: String, pin: i32) -> JsonValue {
     });
 }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, Debug)]
 pub struct Event {
     pub name: String,
     pub pin: String,
@@ -133,6 +133,7 @@ pub struct Event {
 // Change info about a user
 #[post("/users/change", format = "json", data = "<input>")]
 pub fn change_info(input: Json<Event>) -> JsonValue {
+    println!("{:?}", input);
     // read in the users & hash the pin
     let mut users: Vec<User> = read_json();
     let hashed_pin = sha1::Sha1::from(&input.pin).digest().to_string();

@@ -96,3 +96,12 @@ pub fn write_json(users_list: &Vec<User>) -> Result<()> {
     };
     Ok(())
 }
+
+// test sled funtion
+pub fn test_sled() {
+    let db: sled::Db = sled::open("my_db").unwrap();
+    db.insert("key", "value");
+    let value = std::str::from_utf8(&db.get("key").unwrap().unwrap()).unwrap();
+    info!("database: {:?}", &value);
+
+}

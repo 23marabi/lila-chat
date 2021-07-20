@@ -32,13 +32,18 @@ form.addEventListener("submit", async function(event) {
         newPin = pin
     }
    
+	if (newPin === pin) {
+		let body = `{"name":${uname},"pin":${pin},"changed_event":"name","new_event":${newUname}}`;
+	} if (newUname == uname) {
+		let body = `{"name":${uname},"pin":${pin},"changed_event":"pin","new_event":${newPin}}`;
+	}
     try {
     const userNotFound = await getUname();
 
     if (userNotFound.status == `fail`) {
       document.querySelector("#incorrect").innerHTML = `user ${uname} was not found`
     } else {
-      loginChange()
+      loginChange(body)
     }
     } catch {
       document.querySelector("#incorrect").innerHTML = 'An Error has Occurred. Try again later.'
@@ -51,13 +56,15 @@ async function getUname() {
   return responseJson;
 }
 
-async function loginChange() {
-const rawResponse = await fetch(`/api/users/change/${uname}/${pin}/${newUname}/${newPin}`, {
+async function loginChange(body) {
+	const rawResponse = await fetch(`/api/users/change`, {
     method: 'POST',
     headers: {
+		'Content-Type': 'application/json'
     },
-    body: ""
+    body: body
 });
+
 document.querySelector("#incorrect").innerHTML = 'Login Changed!'
 window.location.replace("/login.html")
 }
