@@ -96,12 +96,56 @@ pub fn write_json(users_list: &Vec<User>) -> Result<()> {
     };
     Ok(())
 }
-/*
+
 // test sled funtion
 pub fn test_sled() {
+    // create test user
+    let user = User { 
+        name: "erin".to_string(),
+        pin_hashed: "nyaa".to_string(),
+        pronouns: "she/her".to_string(),
+        session_token: "NULL".to_string(),
+    };
+    // open database
     let db: sled::Db = sled::open("my_db").unwrap();
-    db.insert("key", "value");
-    let value = std::str::from_utf8(&db.get("key").unwrap().unwrap()).unwrap();
-    info!("database: {:?}", &value);
+    let bytes = bincode::serialize(&user).unwrap();
+    db.insert(&user.name, bytes).unwrap();
+    match db.get(user.name).unwrap() {
+        Some(bytes) => {
+            let read_user: User = bincode::deserialize(&bytes).unwrap();
+            println!("username: {}, pronouns: {}", read_user.name, read_user.pronouns);
+        },
+        None => (),
+    }
+}
 
-}*/
+// add a user to the database
+pub fn db_add(user: &User) {
+    let db: sled::Db = sled::open("users_db").unwrap();
+    let bytes = bincode::serialize(&user).unwrap();
+    db.insert(&user.name, bytes).unwrap();
+    info!("succesfully appended user {} to database", &user.name);
+}
+
+// write all changed users to database
+pub fn db_write(users_list: &Vec<User>) {
+    let db: sled::Db = sled::open("users_db").unwrap();
+    for i in users_list {
+        let bytes = bincode::serialize(&i).unwrap();
+        db.insert(&i.name, bytes).unwrap();
+        info!("wrote user {} to db", &i.name);
+    }
+    info!("wrote all users to db");
+}
+
+// read all users from the database
+pub fn db_read() -> Vec<User> {
+    let db: sled::Db = sled::open("users_db").unwrap();
+    let mut users: Vec<User> = Vec::new();
+    for (_, bytes) in db.iter().filter_map(|r| r.ok()) {
+        let read_user: User = bincode::deserialize(&bytes).unwrap();
+        info!("read user {} from db", read_user.name);
+        users.push(read_user);
+    }
+    return users;
+}

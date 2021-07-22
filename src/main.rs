@@ -18,7 +18,6 @@ mod user;
 
 fn main() {
     env_logger::init();
-    //file_io::test_sled();
     info!("Started up rocket");
     let cors_fairing = AdHoc::on_response("CORS", |_, res| {
         res.set_raw_header("Access-Control-Allow-Origin", "*");

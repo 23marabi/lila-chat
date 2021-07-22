@@ -1,5 +1,5 @@
 extern crate log;
-use crate::file_io::{append_json, read_json, write_json};
+use crate::file_io::{db_add, db_write, db_read};
 use rocket::http::{Cookie, Cookies};
 use crate::user::User;
 use rocket_contrib::json::{Json, JsonValue};
@@ -27,7 +27,7 @@ pub fn index() -> &'static str {
 // Post request to register a user and pin
 #[post("/register/<name>/<pin>/<pronouns>")]
 pub fn register_user(name: String, pin: i32, pronouns: String) -> JsonValue {
-    let mut users: Vec<User> = read_json(); // Create an array of users out of parsed json
+    let mut users: Vec<User> = db_read(); // Create an array of users out of parsed json
     for i in &users {
         // loop through elements of the vector
         if i.name == name.to_lowercase() {
@@ -48,16 +48,18 @@ pub fn register_user(name: String, pin: i32, pronouns: String) -> JsonValue {
         session_token: "NULL".to_string(),
     }; // append the user to the vec
 
+    /*
     // append to the json file
     match append_json(&new_user) {
         Err(why) => panic!("couldn't append json: {}", why),
         Ok(()) => info!("Succesfully appended to json"),
-    };
+    };*/
+    db_add(&new_user);
 
     info!(
         "succesfully created user {} with pin hash {}",
-        users[users.len() - 1].name.to_string(),
-        users[users.len() - 1].pin_hashed
+        new_user.name.to_string(),
+        new_user.pin_hashed
     );
     return json!({
         "status": "ok",
@@ -71,10 +73,12 @@ fn create_token(name: String, mut users: Vec<User>) -> String {
     for i in 0..users.len() {
         if users[i].name == name {
             users[i].session_token = generate(12, charset);
+            /*
             match write_json(&users) {
                 Err(why) => panic!("coudln't write to file: {}", why),
                 Ok(()) => info!("succesfully wrote to file"),
-            };
+            };*/
+            db_write(&users);
             info!("succesfully created token for user {}", name);
             let token = users[i].session_token.clone();
             return token;
@@ -87,7 +91,7 @@ fn create_token(name: String, mut users: Vec<User>) -> String {
 // Check if pin matches user
 #[get("/users/<name>/<pin>")]
 pub fn check_pin(mut cookies: Cookies, name: String, pin: i32) -> JsonValue {
-    let users: Vec<User> = read_json();
+    let users: Vec<User> = db_read();
     let hashed_pin_input = sha1::Sha1::from(&pin.to_string()).digest().to_string();
     for i in &users {
         // loop through the vector
@@ -136,7 +140,7 @@ pub struct Event {
 pub fn change_info(input: Json<Event>) -> JsonValue {
     println!("{:?}", input);
     // read in the users & hash the pin
-    let mut users: Vec<User> = read_json();
+    let mut users: Vec<User> = db_read();
     let hashed_pin = sha1::Sha1::from(&input.pin).digest().to_string();
 
     // loop through the users
@@ -147,7 +151,7 @@ pub fn change_info(input: Json<Event>) -> JsonValue {
                     // change the name
                     users[i].name = input.new_event.clone();
                     info!("changed name of {} to {}", input.name, input.new_event);
-                    write_json(&users);
+                    db_write(&users);
                     return json!({
                         "status": "ok",
                         "reason": format!("changed name of {} to {}", input.name, input.new_event),
@@ -156,7 +160,7 @@ pub fn change_info(input: Json<Event>) -> JsonValue {
                     // change the pin
                     let new_hashed_pin = sha1::Sha1::from(&input.new_event).digest().to_string();
                     users[i].pin_hashed = new_hashed_pin.clone();
-                    write_json(&users);
+                    db_write(&users);
                     info!("changed pin of {}", input.name);
                     return json!({
                         "status": "ok",
@@ -166,7 +170,7 @@ pub fn change_info(input: Json<Event>) -> JsonValue {
                     // change the pronouns
                     users[i].pronouns = input.new_event.clone();
                     info!("changed pronouns of {} to {}", input.name, input.new_event);
-                    write_json(&users);
+                    db_write(&users);
                     return json!({
                         "status": "ok",
                         "reason": "successfully changed pronouns",
@@ -191,7 +195,7 @@ pub fn change_info(input: Json<Event>) -> JsonValue {
 // Change a users pin/name
 #[post("/users/change/<name>/<pin>/<new_name>/<new_pin>")]
 pub fn change(name: String, pin: i32, new_name: String, new_pin: i32) -> JsonValue {
-    let mut users: Vec<User> = read_json();
+    let mut users: Vec<User> = db_read();
 
     let hashed_pin_input = sha1::Sha1::from(&pin.to_string()).digest().to_string();
 
@@ -205,10 +209,12 @@ pub fn change(name: String, pin: i32, new_name: String, new_pin: i32) -> JsonVal
                 if users[i].name == new_name.to_lowercase() {
                     // check if new name already exists
                     users[i].pin_hashed = sha1::Sha1::from(&new_pin.to_string()).digest().to_string();
+                    /*
                     match write_json(&users) {
                         Err(why) => panic!("Cannot write to json! {}", why),
                         Ok(()) => info!("succesfully wrote to json file"),
-                    }
+                    }*/
+                    db_write(&users);
                     info!("Changed pin of {}", name.to_string().to_lowercase());
                     return json!({
                         "status": "ok",
@@ -232,11 +238,12 @@ pub fn change(name: String, pin: i32, new_name: String, new_pin: i32) -> JsonVal
                     users[i].name = new_name.to_string().to_lowercase();
                     users[i].pin_hashed =
                         sha1::Sha1::from(&new_pin.to_string()).digest().to_string();
-
+                    /*
                     match write_json(&users) {
                         Err(why) => panic!("couldn't write to json file! {}", why),
                         Ok(()) => info!("succesfully wrote to json file"),
-                    }
+                    }*/
+                    db_write(&users);
                     info!(
                         "Changed name of {} to {}. New pin hash is {}",
                         name.to_string(),
@@ -269,7 +276,7 @@ pub fn change(name: String, pin: i32, new_name: String, new_pin: i32) -> JsonVal
 
 #[get("/users/<name>")]
 pub fn get_user(name: String) -> JsonValue {
-    let users: Vec<User> = read_json();
+    let users: Vec<User> = db_read();
     let found_user = users
         .iter()
         .filter(|u| u.name == name.to_lowercase())
