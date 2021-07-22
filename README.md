@@ -1,9 +1,11 @@
 # Chat Registration System
 
 The basic backend code needed to register & login to a chat system (to be built).
-Send it the unhashed username and pin, and it'll store it in the `users.json` file with the pin hashed with SHA1.
+Send it the unhashed username and pin, and it'll store it in the database with the pin hashed with SHA1.
 
 ## API Documentation
+
+`POST /api/register {"name":"<username>","pin":"<pin>","pronouns":"<pronouns>"}` Register a user if they don't already exist
 
 `POST /api/register/<name>/<pin>/<pronouns>` Register the username with the pin provided if it doesn't already exist
 Returns status & reason json.
@@ -28,7 +30,7 @@ or
 
 `GET /api/token/<name>` Check if the current token matches the user provided
 
-DEPRECATED `GET /api/users/<name>/<pin>` Check if the user exists, and if the pin provided matches
+`GET /api/users/<name>/<pin>` Check if the user exists, and if the pin provided matches
 Returns status & reason json.
 
 `POST /api/users/change {"name":"<username>","pin":"<pin>","changed_event":"name/pin/pronouns","new_event":"<new name/pin/pronouns>"` Change a users details via a json post.
@@ -43,7 +45,7 @@ Returns status & reason json.
 
 ## Chat Documentation
 
-`POST /api/message/send {"name":"username","body":"message body","date":"yyy-mm-dd","token":"USER_TOKEN"}` Post a json message.
+`POST /api/message/send {"name":"username","body":"message body","date":"yyyy-mm-dd"}` Post a json message.
 Returns status & reason json.
 
 `GET /api/message/messages.json` Get a json file of all the messages

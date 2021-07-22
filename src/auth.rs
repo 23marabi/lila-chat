@@ -24,13 +24,20 @@ pub fn index() -> &'static str {
     `GET /api/about/pronouns/<name>` Get the pronouns of a user"
 }
 
+#[derive(Deserialize, Debug)]
+pub struct RegisterEvent {
+    pub name: String,
+    pub pin: String,
+    pub pronouns: String,
+}
+
 // Post request to register a user and pin
-#[post("/register/<name>/<pin>/<pronouns>")]
-pub fn register_user(name: String, pin: i32, pronouns: String) -> JsonValue {
-    let mut users: Vec<User> = db_read(); // Create an array of users out of parsed json
+#[post("/register", format = "json", data = "<info>")]
+pub fn register_user(info: Json<RegisterEvent>) -> JsonValue {
+    let users: Vec<User> = db_read(); // Create an array of users out of parsed json
     for i in &users {
         // loop through elements of the vector
-        if i.name == name.to_lowercase() {
+        if i.name == info.name.to_lowercase() {
             warn!("Cannot create user {}! User is already in system.", i.name);
             return json!({
                 "status": "fail",
@@ -39,12 +46,12 @@ pub fn register_user(name: String, pin: i32, pronouns: String) -> JsonValue {
         };
     }
 
-    let pin_hashed = sha1::Sha1::from(&pin.to_string()).digest().to_string(); // hash the pin
+    let pin_hashed = sha1::Sha1::from(&info.pin.to_string()).digest().to_string(); // hash the pin
 
     let new_user: User = User {
-        name: name.to_string().to_lowercase(),
+        name: info.name.to_string().to_lowercase(),
         pin_hashed: pin_hashed,
-        pronouns: pronouns.to_string().to_lowercase(),
+        pronouns: info.pronouns.to_string().to_lowercase(),
         session_token: "NULL".to_string(),
     }; // append the user to the vec
 
@@ -161,6 +168,7 @@ pub fn logout(info: Json<LogoutEvent>, mut cookies: Cookies) -> JsonValue {
                     "reason": "NULL token",
                 });
             } else if token.value() == users[i].session_token {
+
                 cookies.remove_private(Cookie::named("token"));
                 users[i].session_token = "NULL".to_string();
                 info!("logged out user {}", info.name);
@@ -186,7 +194,7 @@ pub fn logout(info: Json<LogoutEvent>, mut cookies: Cookies) -> JsonValue {
 
 // Check if pin matches user
 #[get("/users/<name>/<pin>")]
-pub fn check_pin(mut cookies: Cookies, name: String, pin: i32) -> JsonValue {
+pub fn login(mut cookies: Cookies, name: String, pin: i32) -> JsonValue {
     let users: Vec<User> = db_read();
     let hashed_pin_input = sha1::Sha1::from(&pin.to_string()).digest().to_string();
     for i in &users {
@@ -199,6 +207,8 @@ pub fn check_pin(mut cookies: Cookies, name: String, pin: i32) -> JsonValue {
                 let token = create_token(i.name.clone(), users);
                 let cookie = Cookie::build("token", token)
                     .path("/")
+                    .same_site(SameSite::Strict)
+                    .secure(true)
                     .finish();
                 cookies.remove_private(Cookie::named("token"));
                 cookies.add_private(cookie);

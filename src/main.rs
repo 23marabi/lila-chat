@@ -31,7 +31,7 @@ fn main() {
                 auth::index,
                 auth::get_user,
                 auth::register_user,
-                auth::check_pin,
+                auth::login,
                 auth::change,
                 chat::send_message,
                 chat::fetch_messages,
