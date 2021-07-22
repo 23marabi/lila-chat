@@ -13,7 +13,7 @@ pub struct MessageInput<'r> {
 #[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct Message {
     pub id: Uuid,
-    pub user: User,
+    pub user: String,
     pub body: String,
     pub created_at: DateTime<Utc>,
 }

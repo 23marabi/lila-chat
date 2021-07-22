@@ -47,7 +47,7 @@ fn create_message(message: Json<MessageInput>, file: &str, user: &User) -> JsonV
     let date: DateTime<Utc> = Utc.ymd(year, month, day).and_hms(9, 10, 11);
     let message_obj: Message = Message {
         id: Uuid::new_v4(),
-        user: user.to_owned(),
+        user: user.name.to_owned(),
         body: message.body.to_string(),
         created_at: date,
     };
