@@ -88,6 +88,50 @@ fn create_token(name: String, mut users: Vec<User>) -> String {
     return "NULL".to_string();
 }
 
+// Check if user is properly logged in
+#[get("/token/<name>")]
+pub fn check_token(name: String, mut cookies: Cookies) -> JsonValue {
+    let users: Vec<User> = db_read();
+    for i in &users {
+        if i.name == name.to_lowercase() {
+            let token = match cookies.get_private("token") {
+                None => {
+                    warn!("couldn't get token cookie!");
+                    return json!({
+                        "status": "fail",
+                        "reason": "could not read cookie",
+                    });
+                },
+                Some(token) => token,
+            };
+            if token.value() == "NULL" {
+                warn!("NULL token!");
+                return json!({
+                    "status": "fail",
+                    "reason": "NULL token",
+                });
+            } else if token.value() == i.session_token {
+                info!("user {} has correct session token", name);
+                return json!({
+                    "status": "ok",
+                    "reason": "correct token",
+                });
+            } else {
+                info!("user {} has incorrect token!", name);
+                return json!({
+                    "status": "fail",
+                    "reason": "incorrect token",
+                });
+            }
+        }
+    }
+    warn!("user {} not found", name);
+    return json!({
+        "status": "fail",
+        "reason": "user not found",
+    });
+}
+
 // Check if pin matches user
 #[get("/users/<name>/<pin>")]
 pub fn check_pin(mut cookies: Cookies, name: String, pin: i32) -> JsonValue {
@@ -146,16 +190,35 @@ pub struct Event {
 
 // Change info about a user
 #[post("/users/change", format = "json", data = "<input>")]
-pub fn change_info(input: Json<Event>) -> JsonValue {
+pub fn change_info(input: Json<Event>, mut cookies: Cookies) -> JsonValue {
     println!("{:?}", input);
     // read in the users & hash the pin
     let mut users: Vec<User> = db_read();
     let hashed_pin = sha1::Sha1::from(&input.pin).digest().to_string();
+    
+    // get token from cookie
+    let token = match cookies.get_private("token") {
+        None => {
+            warn!("couldn't get token cookie!");
+            return json!({
+                "status": "fail",
+                "reason": "could not read cookie",
+            });
+        },
+        Some(token) => token,
+    };
+    if token.value() == "NULL" {
+        warn!("NULL token!");
+        return json!({
+            "status": "fail",
+            "reason": "NULL token",
+        });
+    }
 
     // loop through the users
     for i in 0..users.len() {
         if input.name.to_lowercase() == users[i].name { // if user found...
-            if hashed_pin == users[i].pin_hashed { // & if pin matches:
+            if token.value() == users[i].session_token { // & if token matches:
                 if input.changed_event == "name" {
                     // change the name
                     users[i].name = input.new_event.clone();
@@ -212,8 +275,8 @@ pub fn change(name: String, pin: i32, new_name: String, new_pin: i32) -> JsonVal
     for i in 0..users.len() {
         if users[i].name == name.to_lowercase() {
             // make sure name exists
-            if users[i].pin_hashed == hashed_pin_input {
-                // check if pin is correct
+            if hashed_pin_input == users[i].pin_hashed {
+                // check if token is correct
                 // Check wether to change name or name+pin
                 if users[i].name == new_name.to_lowercase() {
                     // check if new name already exists
@@ -265,10 +328,10 @@ pub fn change(name: String, pin: i32, new_name: String, new_pin: i32) -> JsonVal
                     });
                 }
             } else {
-                warn!("Incorrect pin given for user {}!", name.to_string());
+                warn!("Incorrect token for user {}!", name.to_string());
                 return json!({
                     "status": "fail",
-                    "reason": "incorrect pin for user",
+                    "reason": "incorrect token for user",
                 });
             }
         }

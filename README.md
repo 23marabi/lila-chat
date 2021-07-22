@@ -26,7 +26,9 @@ or
 	},
 }`
 
-`GET /api/users/<name>/<pin>` Check if the user exists, and if the pin provided matches
+`GET /api/token/<name>` Check if the current token matches the user provided
+
+DEPRECATED `GET /api/users/<name>/<pin>` Check if the user exists, and if the pin provided matches
 Returns status & reason json.
 
 `POST /api/users/change {"name":"<username>","pin":"<pin>","changed_event":"name/pin/pronouns","new_event":"<new name/pin/pronouns>"` Change a users details via a json post.
@@ -59,13 +61,18 @@ Whenever user sends a message, client will send message & token and backend will
 - [x] Basic messaging system
 	- [x] Finish up `chat::create_message()`
 	- [x] Create `chat::fetch_messages()`
+	- [ ] Use unix timestamp for date
 	- [ ] Create `chat::delete_message()`
 - [x] Switch to using sled database to store users
+	- [ ] Error handling
 - [x] Token generation & storage
 	- [x] Sets cookie
 	- [x] Store token in json
 	- [x] Have cookie expire
 	- [x] Remove old cookie
+	- [x] Use token for most stuff
+	- [ ] Logout API
+	- [x] Fail on NULL token
 - [x] Pronouns
 	- [x] Set pronouns
 	- [ ] Change pronouns

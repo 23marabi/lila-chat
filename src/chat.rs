@@ -67,7 +67,13 @@ fn check_token(token: Cookie, message: Json<MessageInput<'_>>) -> JsonValue {
     for i in &users {
         // loop through elements
         if i.name == message.name.to_lowercase() { // if it finds the user in the file
-            if i.session_token == token.value() { // if token matches
+            if token == "NULL" {
+                warn!("NULL token!");
+                return json!({
+                    "status": "fail",
+                    "reason": "NULL token",
+                });
+            } else if i.session_token == token.value() { // if token matches
                 info!("user exists and given token matches");
                 return create_message(message, "messages.json", i);
             } else {
