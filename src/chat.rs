@@ -67,7 +67,7 @@ fn check_token(token: Cookie, message: Json<MessageInput<'_>>) -> JsonValue {
     for i in &users {
         // loop through elements
         if i.name == message.name.to_lowercase() { // if it finds the user in the file
-            if token == "NULL" {
+            if token.value() == "NULL" {
                 warn!("NULL token!");
                 return json!({
                     "status": "fail",
