@@ -78,10 +78,14 @@ Whenever user sends a message, client will send message & token and backend will
 - [x] Pronouns
 	- [x] Set pronouns
 	- [x] Change pronouns
+- [ ] make changed_event Enum, use token instead of pin
 - [ ] Some form of plural support?
 - [ ] User management (banning, etc.)
-	- [ ] User roles (admin, mod, etc.)
+	- [x] User roles (admin, mod, etc.)
+	- [ ] Commands to affect users
 - [ ] Blacklist words from chat/names
 - [ ] More advanced chat features
 	- [x] Different types of message events? eg. default, announcement, command
+	- [ ] Types will display differently? eg. announcements pinned to top?
+	- [ ] Have different commands?
 	- [ ] Emote support?
