@@ -2,6 +2,7 @@
 - Most actions should now fail on a NULL token
 - Cookie should now expire after a week
 - Use sled database instead of json file to store users
+- Now use `GET /api/token/<name>` to validate a users session token
 
 ## 0.4.0
 - Serve frontend code
