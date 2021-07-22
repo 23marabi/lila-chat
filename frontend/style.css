@@ -21,11 +21,7 @@ form {
     width: 20%;
 }
 
-#taken {
-    padding-top: 1%;
-}
-
-#incorrect {
+#errormessage {
     padding-top: 1%;
 }
 

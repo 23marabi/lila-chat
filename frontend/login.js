@@ -1,32 +1,40 @@
-let uname = document.querySelector('#uname').value; // grabbing the username submitted and putting it in the variable uname
-let pin = document.querySelector('#pin').value; // grabbing the pin submitted and putting it in the variable pin
-const form = document.querySelector('form'); // grabbing an element on the page
 
-form.addEventListener("submit", async function(event) {
-    event.preventDefault();
-    const formData = new FormData(form);
+//SETTING VARIABLES. GRABBING CONTENTS FROM FORM.
 
-    uname = formData.get('uname');
-    pin = formData.get('pin');
+let uname = document.querySelector('#uname').value;
+let pin = document.querySelector('#pin').value;
+const form = document.querySelector('form');
 
-    const response = await fetch(`/api/users/${uname}/${pin}`);
-    const loginInfo = await response.json();
-    
-    if (loginInfo.status === "ok") {
-      login()
-    } else {
-      incorrectLogin()
-    }
+// SUBMIT FORM FUNCTION. AND FETCH USERNAME AND PIN FROM API. 
+
+form.addEventListener("submit", async function (event) {
+  event.preventDefault();
+  const formData = new FormData(form);
+
+  uname = formData.get('uname');
+  pin = formData.get('pin');
+
+  const response = await fetch(`/api/users/${uname}/${pin}`);
+  const loginInfo = await response.json();
+
+  if (loginInfo.status === "ok") {
+    login()
+  } else {
+    incorrectLogin()
+  }
 })
 
+
+// FUNCTIONS FOR WHETHER THE LOGIN WAS A SUCCESS OR FAILURE
+
 function login() {
-    console.log('You have logged in!')
-    document.querySelector("#username").innerHTML = `${uname}`
-    document.querySelector("#incorrect").innerHTML = ''
+  console.log('You have logged in!')
+  document.querySelector("#username").innerHTML = `${uname}`
+  document.querySelector("#errormessage").innerHTML = ''
+  localStorage.setItem("username", `${uname}`);
 }
-   
+
 function incorrectLogin() {
-    console.log('Incorrect Login!')
-    document.querySelector("#incorrect").innerHTML = 'Incorrect Login.'
+  console.log('Incorrect Login!')
+  document.querySelector("#errormessage").innerHTML = 'Incorrect Login.'
 }
- 
