@@ -20,7 +20,7 @@ fn main() {
     env_logger::init();
     info!("Started up rocket");
     let cors_fairing = AdHoc::on_response("CORS", |_, res| {
-        res.set_raw_header("Access-Control-Allow-Origin", "*");
+        res.set_raw_header("Access-Control-Allow-Origin", "http://localhost:8000");
     });
     info!("Built CORS fairing");
 
@@ -36,7 +36,8 @@ fn main() {
                 chat::send_message,
                 chat::fetch_messages,
                 auth::change_info,
-                auth::check_token
+                auth::check_token,
+                auth::logout
             ],
         )
         .mount("/", StaticFiles::from("frontend"))

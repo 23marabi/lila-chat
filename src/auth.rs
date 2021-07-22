@@ -1,6 +1,6 @@
 extern crate log;
 use crate::file_io::{db_add, db_write, db_read};
-use rocket::http::{Cookie, Cookies};
+use rocket::http::{Cookie, Cookies, SameSite};
 use crate::user::User;
 use rocket_contrib::json::{Json, JsonValue};
 use random_string::generate;
@@ -132,6 +132,58 @@ pub fn check_token(name: String, mut cookies: Cookies) -> JsonValue {
     });
 }
 
+// logout event struct
+#[derive(Deserialize, Debug)]
+pub struct LogoutEvent {
+    pub name: String,
+}
+
+// Logout API
+#[post("/logout", format = "json", data = "<info>")]
+pub fn logout(info: Json<LogoutEvent>, mut cookies: Cookies) -> JsonValue {
+    let mut users: Vec<User> = db_read();
+    for i in 0..users.len() {
+        if info.name.to_lowercase() == users[i].name {
+            let token = match cookies.get_private("token") {
+                None => {
+                    warn!("couldn't get token cookie!");
+                    return json!({
+                        "status": "fail",
+                        "reason": "could not read cookie",
+                    });
+                },
+                Some(token) => token,
+            };
+            if token.value() == "NULL" {
+                warn!("NULL token!");
+                return json!({
+                    "status": "fail",
+                    "reason": "NULL token",
+                });
+            } else if token.value() == users[i].session_token {
+                cookies.remove_private(Cookie::named("token"));
+                users[i].session_token = "NULL".to_string();
+                info!("logged out user {}", info.name);
+                return json!({
+                    "status": "ok",
+                    "reason": "logged out",
+                });
+            } else {
+                warn!("token does not match! cannot logout");
+                return json!({
+                    "status": "fail",
+                    "reason": "token does not match",
+                });
+            }
+        }
+    }
+    warn!("logged out user {}, user not found", info.name);
+    return json!({
+        "status": "fail",
+        "reason": "user not found",
+    });
+}
+
 // Check if pin matches user
 #[get("/users/<name>/<pin>")]
 pub fn check_pin(mut cookies: Cookies, name: String, pin: i32) -> JsonValue {
@@ -147,7 +199,6 @@ pub fn check_pin(mut cookies: Cookies, name: String, pin: i32) -> JsonValue {
                 let token = create_token(i.name.clone(), users);
                 let cookie = Cookie::build("token", token)
                     .path("/")
-                    .secure(true)
                     .finish();
                 cookies.remove_private(Cookie::named("token"));
                 cookies.add_private(cookie);
@@ -181,7 +232,7 @@ pub fn check_pin(mut cookies: Cookies, name: String, pin: i32) -> JsonValue {
 }
 
 #[derive(Deserialize, Debug)]
-pub struct Event {
+pub struct ChangeEvent {
     pub name: String,
     pub pin: String,
     pub changed_event: String,
@@ -190,11 +241,9 @@ pub struct Event {
 
 // Change info about a user
 #[post("/users/change", format = "json", data = "<input>")]
-pub fn change_info(input: Json<Event>, mut cookies: Cookies) -> JsonValue {
-    println!("{:?}", input);
+pub fn change_info(input: Json<ChangeEvent>, mut cookies: Cookies) -> JsonValue {
     // read in the users & hash the pin
     let mut users: Vec<User> = db_read();
-    let hashed_pin = sha1::Sha1::from(&input.pin).digest().to_string();
     
     // get token from cookie
     let token = match cookies.get_private("token") {

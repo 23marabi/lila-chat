@@ -38,6 +38,8 @@ eg. `POST /api/users/change {"name":"example","pin":"10","changed_event":"name",
 DEPRECATED `POST /api/users/change/<name>/<pin>/<new-name>/<new-pin>` Change a users pin/name
 Returns status & reason json.
 
+`POST /api/logout {"name":"<username>"}` to logout a user if the token matches
+
 
 ## Chat Documentation
 
@@ -71,7 +73,7 @@ Whenever user sends a message, client will send message & token and backend will
 	- [x] Have cookie expire
 	- [x] Remove old cookie
 	- [x] Use token for most stuff
-	- [ ] Logout API
+	- [x] Logout API
 	- [x] Fail on NULL token
 - [x] Pronouns
 	- [x] Set pronouns

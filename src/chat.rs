@@ -80,7 +80,7 @@ fn check_token(token: Cookie, message: Json<MessageInput<'_>>) -> JsonValue {
                 warn!("token does not match!");
                 return json!({
                     "status": "fail",
-                    "reason": "token does not match"
+                    "reason": "token does not match",
                 })
             };
         };
@@ -95,6 +95,15 @@ fn check_token(token: Cookie, message: Json<MessageInput<'_>>) -> JsonValue {
 // Receive a basic message
 #[post("/message/send", format = "json", data = "<message>")]
 pub fn send_message(message: Json<MessageInput<'_>>, mut cookies: Cookies) -> JsonValue {
-    let token = cookies.get_private("token").unwrap();
+    let token = match cookies.get_private("token") {
+        None => {
+            warn!("couldn't get token cookie!");
+            return json!({
+                "status": "fail",
+                "reason": "could not read cookie",
+            });
+        },
+        Some(token) => token,
+    };
     check_token(token, message)
 }
