@@ -77,10 +77,10 @@ Whenever user sends a message, client will send message & token and backend will
 	- [x] Fail on NULL token
 - [x] Pronouns
 	- [x] Set pronouns
-	- [ ] Change pronouns
-	- [ ] Multiple sets of pronouns
+	- [x] Change pronouns
 - [ ] Some form of plural support?
 - [ ] User management (banning, etc.)
+	- [ ] User roles (admin, mod, etc.)
 - [ ] Blacklist words from chat/names
 - [ ] More advanced chat features
 	- [x] Different types of message events? eg. default, announcement, command

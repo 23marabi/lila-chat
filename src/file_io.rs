@@ -97,28 +97,6 @@ pub fn write_json(users_list: &Vec<User>) -> Result<()> {
     Ok(())
 }
 
-// test sled funtion
-pub fn test_sled() {
-    // create test user
-    let user = User { 
-        name: "erin".to_string(),
-        pin_hashed: "nyaa".to_string(),
-        pronouns: "she/her".to_string(),
-        session_token: "NULL".to_string(),
-    };
-    // open database
-    let db: sled::Db = sled::open("my_db").unwrap();
-    let bytes = bincode::serialize(&user).unwrap();
-    db.insert(&user.name, bytes).unwrap();
-    match db.get(user.name).unwrap() {
-        Some(bytes) => {
-            let read_user: User = bincode::deserialize(&bytes).unwrap();
-            println!("username: {}, pronouns: {}", read_user.name, read_user.pronouns);
-        },
-        None => (),
-    }
-}
-
 // add a user to the database
 pub fn db_add(user: &User) {
     let db: sled::Db = sled::open("users_db").unwrap();

@@ -9,7 +9,6 @@ use rocket_contrib::json::{Json, JsonValue};
 use chrono::prelude::*;
 use uuid::Uuid;
 use crate::user::User;
-use std::time::{Duration, SystemTime};
 
 static MESSAGES: Lazy<Mutex<Vec<Message>>> = Lazy::new(|| Mutex::new(Vec::new()));
 
@@ -33,9 +32,9 @@ fn create_message(message: Json<MessageInput>, file: &str, user: &User) -> JsonV
     // create full message object
     let message_obj: Message = Message {
         id: Uuid::new_v4(),
+        event_type,
         user: user.name.to_owned(),
         body: message.body.to_string(),
-        event_type: event_type,
         created_at: Utc::now(),
     };
     info!("created mesage: {:?}", message_obj);

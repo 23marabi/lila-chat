@@ -1,7 +1,7 @@
 extern crate log;
 use crate::file_io::{db_add, db_write, db_read};
-use rocket::http::{Cookie, Cookies, SameSite};
-use crate::user::User;
+use rocket::http::{Cookie, Cookies};
+use crate::user::{User, UserType};
 use rocket_contrib::json::{Json, JsonValue};
 use random_string::generate;
 extern crate sha1;
@@ -40,13 +40,14 @@ pub fn register_user(name: String, pin: i32, pronouns: String) -> JsonValue {
     }
 
     let pin_hashed = sha1::Sha1::from(&pin.to_string()).digest().to_string(); // hash the pin
-
+    
     let new_user: User = User {
         name: name.to_string().to_lowercase(),
-        pin_hashed: pin_hashed,
+        pin_hashed,
         pronouns: pronouns.to_string().to_lowercase(),
         session_token: "NULL".to_string(),
-    }; // append the user to the vec
+        role: UserType::Normal,
+    };
 
     /*
     // append to the json file
@@ -409,6 +410,7 @@ pub fn get_user(name: String) -> JsonValue {
             "user": {
                 "name": user.name,
                 "pronouns": user.pronouns,
+                "role": user.role,
             },
         }),
         None => json!({
@@ -417,3 +419,13 @@ pub fn get_user(name: String) -> JsonValue {
         }),
     }
 }
+/*
+#[derive(Deserialize, Debug)]
+pub struct ModerationAction {
+}
+
+/* User Management */
+#[post("/mod", format = "json", data = "<data>")]
+pub fn moderation_actions(data: Json<ModerationAction<'_>>, mut cookies: Cookies) -> JsonValue {
+
+}*/
