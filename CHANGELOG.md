@@ -1,3 +1,9 @@
+### 0.5.1
+- `/api/logout` API to delete session token
+- Add basic support for different message types
+- Messages now use unix timestamps
+	- Backend finds timestamp
+
 ## 0.5.0
 - Most actions should now fail on a NULL token
 - Cookie should now expire after a week

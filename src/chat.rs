@@ -9,6 +9,7 @@ use rocket_contrib::json::{Json, JsonValue};
 use chrono::prelude::*;
 use uuid::Uuid;
 use crate::user::User;
+use std::time::{Duration, SystemTime};
 
 static MESSAGES: Lazy<Mutex<Vec<Message>>> = Lazy::new(|| Mutex::new(Vec::new()));
 
@@ -35,9 +36,10 @@ fn create_message(message: Json<MessageInput>, file: &str, user: &User) -> JsonV
         user: user.name.to_owned(),
         body: message.body.to_string(),
         event_type: event_type,
-        created_at: Utc.timestamp(1_500_000_000, 0),
+        created_at: Utc::now(),
     };
     info!("created mesage: {:?}", message_obj);
+    info!("Date is: {}", message_obj.created_at.to_rfc2822());
 
     // append message to file
     let mut messages = MESSAGES.lock().unwrap();
@@ -95,3 +97,20 @@ pub fn send_message(message: Json<MessageInput<'_>>, mut cookies: Cookies) -> Js
     };
     check_token(token, message)
 }
+
+// Delete a message
+/*
+#[post("/message/delete", format = "json", data = "<message>")]
+pub fn delete_message(message: Json<MessageInput<'_>>, mut cookies: Cookies) -> JsonValue {
+    let token = match cookies.get_private("token") {
+        None => {
+            warn!("couldn't get token cookie!");
+            return json!({
+                "status": "fail",
+                "reason": "could not read cookie",
+            });
+        },
+        Some(token) => token,
+    };
+}
+*/

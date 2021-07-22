@@ -43,7 +43,7 @@ Returns status & reason json.
 
 ## Chat Documentation
 
-`POST /api/message/send {"name":"username","body":"message body","date":"yyy-mm-dd","token":"USER_TOKEN"}` Post a json message.
+`POST /api/message/send {"name":"username","body":"message body"}` Post a json message.
 Returns status & reason json.
 
 `GET /api/message/messages.json` Get a json file of all the messages
@@ -83,5 +83,5 @@ Whenever user sends a message, client will send message & token and backend will
 - [ ] User management (banning, etc.)
 - [ ] Blacklist words from chat/names
 - [ ] More advanced chat features
-	- [ ] Different types of message events? eg. default, announcement, command
+	- [x] Different types of message events? eg. default, announcement, command
 	- [ ] Emote support?
