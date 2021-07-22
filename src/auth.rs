@@ -97,6 +97,7 @@ pub fn check_pin(mut cookies: Cookies, name: String, pin: i32) -> JsonValue {
                 // Create token for user & set a cookie
                 let token = create_token(i.name.clone(), users);
                 cookies.add(Cookie::new("token", token));
+                cookies.add(Cookie::new("user", name));
                 info!("set the token cookie");
 
                 return json!({
