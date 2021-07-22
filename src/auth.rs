@@ -1,7 +1,7 @@
 extern crate log;
 use crate::file_io::{db_add, db_write, db_read};
 use rocket::http::{Cookie, Cookies};
-use crate::user::{User, UserType};
+use crate::user::*;
 use rocket_contrib::json::{Json, JsonValue};
 use random_string::generate;
 extern crate sha1;
@@ -133,12 +133,6 @@ pub fn check_token(name: String, mut cookies: Cookies) -> JsonValue {
     });
 }
 
-// logout event struct
-#[derive(Deserialize, Debug)]
-pub struct LogoutEvent {
-    pub name: String,
-}
-
 // Logout API
 #[post("/logout", format = "json", data = "<info>")]
 pub fn logout(info: Json<LogoutEvent>, mut cookies: Cookies) -> JsonValue {
@@ -230,14 +224,6 @@ pub fn check_pin(mut cookies: Cookies, name: String, pin: i32) -> JsonValue {
         "status": "fail",
         "reason": format!("user {} doesn't exist", name.to_string().to_lowercase()),
     });
-}
-
-#[derive(Deserialize, Debug)]
-pub struct ChangeEvent {
-    pub name: String,
-    pub pin: String,
-    pub changed_event: String,
-    pub new_event: String,
 }
 
 // Change info about a user
@@ -420,12 +406,17 @@ pub fn get_user(name: String) -> JsonValue {
     }
 }
 /*
-#[derive(Deserialize, Debug)]
-pub struct ModerationAction {
-}
-
 /* User Management */
 #[post("/mod", format = "json", data = "<data>")]
 pub fn moderation_actions(data: Json<ModerationAction<'_>>, mut cookies: Cookies) -> JsonValue {
-
+    let token = match cookies.get_private("token") {
+        None => {
+            warn!("couldn't get token cookie!");
+            return json!({
+                "status": "fail",
+                "reason": "could not read cookie",
+            });
+        },
+        Some(token) => token,
+    };
 }*/
