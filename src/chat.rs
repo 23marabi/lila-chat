@@ -2,7 +2,8 @@
 extern crate log;
 use once_cell::sync::Lazy;
 use std::sync::Mutex;
-use crate::file_io::read_json;
+use crate::file_io::db_read;
+use rocket::http::{Cookie, Cookies};
 use crate::message::{Message, MessageInput};
 use rocket_contrib::json::{Json, JsonValue};
 use chrono::prelude::*;
@@ -60,14 +61,13 @@ fn create_message(message: Json<MessageInput>, file: &str, user: &User) -> JsonV
 }
 
 // Check if user can create the message, and then create more info about the message
-fn check_token(message: Json<MessageInput>) -> JsonValue {
+fn check_token(token: Cookie, message: Json<MessageInput<'_>>) -> JsonValue {
     // check if token is correct for name given
-    let users: Vec<User> = read_json(); // create vector out of users in json file
-
+    let users: Vec<User> = db_read(); // create vector out of users in json file
     for i in &users {
         // loop through elements
         if i.name == message.name.to_lowercase() { // if it finds the user in the file
-            if i.session_token == message.token { // if token matches
+            if i.session_token == token.value() { // if token matches
                 info!("user exists and given token matches");
                 return create_message(message, "messages.json", i);
             } else {
@@ -88,6 +88,7 @@ fn check_token(message: Json<MessageInput>) -> JsonValue {
 
 // Receive a basic message
 #[post("/message/send", format = "json", data = "<message>")]
-pub fn send_message(message: Json<MessageInput<'_>>) -> JsonValue {
-    check_token(message)
+pub fn send_message(message: Json<MessageInput<'_>>, mut cookies: Cookies) -> JsonValue {
+    let token = cookies.get_private("token").unwrap();
+    check_token(token, message)
 }

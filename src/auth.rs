@@ -98,10 +98,15 @@ pub fn check_pin(mut cookies: Cookies, name: String, pin: i32) -> JsonValue {
         if i.name == name.to_lowercase() {
             if i.pin_hashed == hashed_pin_input {
                 info!("pin correct for user {}", i.name);
+
                 // Create token for user & set a cookie
                 let token = create_token(i.name.clone(), users);
-                cookies.add(Cookie::new("token", token));
-                cookies.add(Cookie::new("user", name));
+                let cookie = Cookie::build("token", token)
+                    .path("/")
+                    .secure(true)
+                    .finish();
+                cookies.remove_private(Cookie::named("token"));
+                cookies.add_private(cookie);
                 info!("set the token cookie");
 
                 return json!({
@@ -109,6 +114,8 @@ pub fn check_pin(mut cookies: Cookies, name: String, pin: i32) -> JsonValue {
                     "reason": "pin matches",
                 });
             } else {
+                cookies.remove_private(Cookie::named("token"));
+                info!("removed private cookie");
                 warn!("pin incorrect for user {}", i.name);
                 return json!({
                     "status": "fail",
@@ -117,6 +124,8 @@ pub fn check_pin(mut cookies: Cookies, name: String, pin: i32) -> JsonValue {
             };
         };
     }
+    cookies.remove_private(Cookie::named("token"));
+    info!("removed private cookie");
     warn!(
         "cannot check pin for user {} as they do not exist",
         name.to_string().to_lowercase()

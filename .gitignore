@@ -1,3 +1,5 @@
 /target
 .vscode
 users.json
+message.zsh
+users_db/

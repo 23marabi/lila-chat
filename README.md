@@ -60,9 +60,12 @@ Whenever user sends a message, client will send message & token and backend will
 	- [x] Finish up `chat::create_message()`
 	- [x] Create `chat::fetch_messages()`
 	- [ ] Create `chat::delete_message()`
+- [x] Switch to using sled database to store users
 - [x] Token generation & storage
 	- [x] Sets cookie
 	- [x] Store token in json
+	- [x] Have cookie expire
+	- [x] Remove old cookie
 - [x] Pronouns
 	- [x] Set pronouns
 	- [ ] Change pronouns
