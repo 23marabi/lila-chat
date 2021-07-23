@@ -28,6 +28,14 @@ fn create_message(message: Json<MessageInput>, user: &User) -> JsonValue {
         ':' => MessageType::Emote,
         _ => MessageType::Normal,
     };
+    
+    if (message.body == "") | (message.body == " ") {
+        warn!("blank message given");
+        return json!({
+            "status": "fail",
+            "reason": "blank message",
+        });
+    }
 
     // create full message object
     let message_obj: Message = Message {
