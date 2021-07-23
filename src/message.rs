@@ -7,7 +7,6 @@ use uuid::Uuid;
 pub struct MessageInput<'r> {
     pub name: &'r str,
     pub body: &'r str,
-    pub date: i64,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
