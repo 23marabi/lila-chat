@@ -44,11 +44,34 @@ pub struct LogoutEvent {
     pub name: String,
 }
 
+// register event struct
+#[derive(Deserialize, Debug)]
+pub struct RegisterEvent {
+    pub name: String,
+    pub pin: String,
+    pub pronouns: String,
+}
+
+// login event struct
+#[derive(Deserialize, Debug)]
+pub struct LoginEvent {
+    pub name: String,
+    pub pin: String,
+}
+
+// change event type
+#[derive(Deserialize, Debug)]
+pub enum ChangeEventType {
+    Name,
+    Pin,
+    Pronouns,
+}
+
 // change info event struct
 #[derive(Deserialize, Debug)]
 pub struct ChangeEvent {
     pub name: String, // name of the user
     pub pin: String, // user's pin
-    pub changed_event: String, // which event to change
+    pub changed_event: ChangeEventType, // which event to change
     pub new_event: String, // the new value for the event
 }

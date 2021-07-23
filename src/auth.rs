@@ -8,22 +8,22 @@ extern crate sha1;
 use serde::Deserialize;
 
 // Post request to register a user and pin
-#[post("/register/<name>/<pin>/<pronouns>")]
-pub fn register_user(name: String, pin: i32, pronouns: String) -> JsonValue {
+#[post("/register", format = "json", data = "<data>")]
+pub fn register(data: Json<RegisterEvent>) -> JsonValue {
     // check if the user exists
-    if let Some(user) = db_read_user(&name).ok().flatten() {
-        warn!("Cannot create user {}! User is already in system.", name);
+    if let Some(user) = db_read_user(&data.name).ok().flatten() {
+        warn!("Cannot create user {}! User is already in system.", data.name);
         return json!({
             "status": "fail",
             "reason": "user already exists",
         });
     } else {
-        let pin_hashed = sha1::Sha1::from(&pin.to_string()).digest().to_string(); // hash the pin
+        let pin_hashed = sha1::Sha1::from(&data.pin).digest().to_string(); // hash the pin
     
         let new_user: User = User {
-            name: name.to_string().to_lowercase(),
+            name: data.name.to_string().to_lowercase(),
             pin_hashed,
-            pronouns: pronouns.to_string().to_lowercase(),
+            pronouns: data.pronouns.to_string().to_lowercase(),
             session_token: "NULL".to_string(),
             role: UserType::Normal,
         };
@@ -149,10 +149,10 @@ pub fn logout(info: Json<LogoutEvent>, mut cookies: Cookies) -> JsonValue {
 }
 
 // Check if pin matches user
-#[get("/users/<name>/<pin>")]
-pub fn login(mut cookies: Cookies, name: String, pin: i32) -> JsonValue {
-    if let Some(user) = db_read_user(&name.to_lowercase()).ok().flatten() {
-        let hashed_pin_input = sha1::Sha1::from(&pin.to_string()).digest().to_string();
+#[post("/login", format = "json", data = "<data>")]
+pub fn login(data: Json<LoginEvent>, mut cookies: Cookies) -> JsonValue {
+    if let Some(user) = db_read_user(&data.name.to_lowercase()).ok().flatten() {
+        let hashed_pin_input = sha1::Sha1::from(&data.pin.to_string()).digest().to_string();
 
         if user.pin_hashed == hashed_pin_input { // check if pin hash matches
             info!("pin correct for user {}", &user.name);
@@ -184,11 +184,11 @@ pub fn login(mut cookies: Cookies, name: String, pin: i32) -> JsonValue {
         info!("removed private cookie");
         warn!(
             "cannot check pin for user {} as they do not exist",
-            name.to_string().to_lowercase()
+            data.name.to_string().to_lowercase()
         );
         return json!({
             "status": "fail",
-            "reason": format!("user {} doesn't exist", name.to_string().to_lowercase()),
+            "reason": format!("user {} doesn't exist", data.name.to_string().to_lowercase()),
         });
     }
 }
@@ -221,36 +221,40 @@ pub fn change_info(input: Json<ChangeEvent>, mut cookies: Cookies) -> JsonValue 
     // find the user
     if let Some(mut user) = db_read_user(&input.name).ok().flatten() {
         if token.value() == user.session_token { // & if token matches:
-            if input.changed_event == "name" {
-                // remove the user first
-                db_remove(&user);
-                // change the name
-                user.name = input.new_event.clone();
-                info!("changed name of {} to {}", input.name, input.new_event);
-                db_add(&user);
-                return json!({
-                    "status": "ok",
-                    "reason": format!("changed name of {} to {}", input.name, input.new_event),
-                });
-            } else if input.changed_event == "pin" {
-                // change the pin
-                let new_hashed_pin = sha1::Sha1::from(&input.new_event).digest().to_string();
-                user.pin_hashed = new_hashed_pin.clone();
-                db_add(&user);
-                info!("changed pin of {}", input.name);
-                return json!({
-                    "status": "ok",
-                    "reason": "changed pin",
-                });
-            } else if input.changed_event == "pronouns" {
-                // change the pronouns
-                user.pronouns = input.new_event.clone();
-                info!("changed pronouns of {} to {}", input.name, input.new_event);
-                db_add(&user);
-                return json!({
-                    "status": "ok",
-                    "reason": "successfully changed pronouns",
-                });
+            match input.changed_event {
+                ChangeEventType::Name => {
+                    // remove the user first
+                    db_remove(&user);
+                    // change the name
+                    user.name = input.new_event.clone();
+                    info!("changed name of {} to {}", input.name, input.new_event);
+                    db_add(&user);
+                    return json!({
+                        "status": "ok",
+                        "reason": format!("changed name of {} to {}", input.name, input.new_event),
+                    });
+                },
+                ChangeEventType::Pin => {
+                    // change the pin
+                    let new_hashed_pin = sha1::Sha1::from(&input.new_event).digest().to_string();
+                    user.pin_hashed = new_hashed_pin.clone();
+                    db_add(&user);
+                    info!("changed pin of {}", input.name);
+                    return json!({
+                        "status": "ok",
+                        "reason": "changed pin",
+                    });
+                },
+                ChangeEventType::Pronouns => {
+                    // change the pronouns
+                    user.pronouns = input.new_event.clone();
+                    info!("changed pronouns of {} to {}", input.name, input.new_event);
+                    db_add(&user);
+                    return json!({
+                        "status": "ok",
+                        "reason": "successfully changed pronouns",
+                    });
+                },
             };
         } else {
             warn!("incorrect pin for user {}", input.name);

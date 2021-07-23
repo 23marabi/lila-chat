@@ -29,7 +29,7 @@ fn main() {
             "/api",
             routes![
                 auth::get_user,
-                auth::register_user,
+                auth::register,
                 auth::login,
                 chat::send_message,
                 chat::fetch_messages,
