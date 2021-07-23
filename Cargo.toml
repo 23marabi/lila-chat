@@ -1,6 +1,6 @@
 [package]
 name = "pogchat"
-version = "0.5.0"
+version = "0.6.0"
 authors = ["Erin Nova <erin@the-system.eu.org>"]
 edition = "2018"
 

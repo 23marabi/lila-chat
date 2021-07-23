@@ -7,12 +7,21 @@ use uuid::Uuid;
 pub struct MessageInput<'r> {
     pub name: &'r str,
     pub body: &'r str,
-    pub date: &'r str,
+    pub date: i64,
+}
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub enum MessageType {
+    Normal,
+    Announcement,
+    Emote,
+    Command,
 }
 
 #[derive(Debug, Deserialize, Serialize, Clone)]
 pub struct Message {
     pub id: Uuid,
+    pub event_type: MessageType,
     pub user: String,
     pub body: String,
     pub created_at: DateTime<Utc>,

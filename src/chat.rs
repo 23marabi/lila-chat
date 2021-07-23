@@ -4,7 +4,7 @@ use once_cell::sync::Lazy;
 use std::sync::Mutex;
 use crate::file_io::db_read;
 use rocket::http::{Cookie, Cookies};
-use crate::message::{Message, MessageInput};
+use crate::message::{Message, MessageInput, MessageType};
 use rocket_contrib::json::{Json, JsonValue};
 use chrono::prelude::*;
 use uuid::Uuid;
@@ -23,35 +23,24 @@ pub fn fetch_messages() -> Json<Vec<Message>> {
 
 // Create full message object and write to file
 fn create_message(message: Json<MessageInput>, file: &str, user: &User) -> JsonValue {
+    let event_type = match message.body.chars().nth(0).unwrap() {
+        '/' => MessageType::Command,
+        ':' => MessageType::Emote,
+        _ => MessageType::Normal,
+    };
+
     // create full message object
-    // append message to file
-
-    // Create proper datetime format out of string
-    let date_split: Vec<&str> = message.date.split("-").collect();
-
-    let year: i32 = match date_split[0].trim().parse() { // extract year
-        Err(why) => panic!("could not extract year from given date: {}", why),
-        Ok(year) => year,
-    };
-
-    let month: u32 = match date_split[1].trim().parse() { // extract month
-        Err(why) => panic!("could not extract month from given date: {}", why),
-        Ok(month) => month,
-    };
-
-    let day: u32 = match date_split[2].trim().parse() { // extract day
-        Err(why) => panic!("could not extract day from given date: {}", why),
-        Ok(month) => month,
-    };
-
-    let date: DateTime<Utc> = Utc.ymd(year, month, day).and_hms(9, 10, 11);
     let message_obj: Message = Message {
         id: Uuid::new_v4(),
+        event_type,
         user: user.name.to_owned(),
         body: message.body.to_string(),
-        created_at: date,
+        created_at: Utc::now(),
     };
     info!("created mesage: {:?}", message_obj);
+    info!("Date is: {}", message_obj.created_at.to_rfc2822());
+
+    // append message to file
     let mut messages = MESSAGES.lock().unwrap();
     messages.push(message_obj.to_owned());
     return json!({
@@ -107,3 +96,20 @@ pub fn send_message(message: Json<MessageInput<'_>>, mut cookies: Cookies) -> Js
     };
     check_token(token, message)
 }
+
+// Delete a message
+/*
+#[post("/message/delete", format = "json", data = "<message>")]
+pub fn delete_message(message: Json<MessageInput<'_>>, mut cookies: Cookies) -> JsonValue {
+    let token = match cookies.get_private("token") {
+        None => {
+            warn!("couldn't get token cookie!");
+            return json!({
+                "status": "fail",
+                "reason": "could not read cookie",
+            });
+        },
+        Some(token) => token,
+    };
+}
+*/
