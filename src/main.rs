@@ -28,11 +28,9 @@ fn main() {
         .mount(
             "/api",
             routes![
-                auth::index,
                 auth::get_user,
                 auth::register_user,
-                auth::check_pin,
-                auth::change,
+                auth::login,
                 chat::send_message,
                 chat::fetch_messages,
                 auth::change_info,
