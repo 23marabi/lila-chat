@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 
 /* User Data */
 // enum of different user types
-#[derive(Clone, Serialize, Deserialize, Debug)]
+#[derive(Clone, Serialize, Deserialize, Debug, PartialEq)]
 pub enum UserType {
     Normal,
     Moderator,
@@ -34,7 +34,7 @@ pub enum ModActions {
 pub struct ModerationAction {
     pub name: String, // name of the moderator
     pub action: ModActions, // what action to take
-    pub target: User, // who to take the action on
+    pub target: String, // who to take the action on
 }
 
 /* Miscellaneous Events */

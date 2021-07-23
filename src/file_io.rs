@@ -116,6 +116,12 @@ pub fn db_write(users_list: &Vec<User>) {
     info!("wrote all users to db");
 }
 
+// remove a user from the database
+pub fn db_remove(user: &User) {
+    let db: sled::Db = sled::open("users_db").unwrap();
+    db.remove(&user.name);
+}
+
 // read all users from the database
 pub fn db_read() -> Vec<User> {
     let db: sled::Db = sled::open("users_db").unwrap();
@@ -126,4 +132,13 @@ pub fn db_read() -> Vec<User> {
         users.push(read_user);
     }
     return users;
+}
+
+// read one user from the database
+pub fn db_read_user(user: &str) -> User {
+    let db: sled::Db = sled::open("users_db").unwrap();
+    let bytes = db.get(user).unwrap().unwrap();
+    let read_user: User = bincode::deserialize(&bytes).unwrap();
+    info!("read user {} from db", read_user.name);
+    return read_user;
 }

@@ -1,5 +1,5 @@
 extern crate log;
-use crate::file_io::{db_add, db_write, db_read};
+use crate::file_io::{db_add, db_write, db_read, db_read_user, db_remove};
 use rocket::http::{Cookie, Cookies};
 use crate::user::*;
 use rocket_contrib::json::{Json, JsonValue};
@@ -256,6 +256,8 @@ pub fn change_info(input: Json<ChangeEvent>, mut cookies: Cookies) -> JsonValue 
         if input.name.to_lowercase() == users[i].name { // if user found...
             if token.value() == users[i].session_token { // & if token matches:
                 if input.changed_event == "name" {
+                    // remove the user first
+                    db_remove(&users[i]);
                     // change the name
                     users[i].name = input.new_event.clone();
                     info!("changed name of {} to {}", input.name, input.new_event);
@@ -405,10 +407,10 @@ pub fn get_user(name: String) -> JsonValue {
         }),
     }
 }
-/*
+
 /* User Management */
 #[post("/mod", format = "json", data = "<data>")]
-pub fn moderation_actions(data: Json<ModerationAction<'_>>, mut cookies: Cookies) -> JsonValue {
+pub fn moderation_actions(data: Json<ModerationAction>, mut cookies: Cookies) -> JsonValue {
     let token = match cookies.get_private("token") {
         None => {
             warn!("couldn't get token cookie!");
@@ -419,4 +421,50 @@ pub fn moderation_actions(data: Json<ModerationAction<'_>>, mut cookies: Cookies
         },
         Some(token) => token,
     };
-}*/
+    let mut user = db_read_user(&data.name.to_lowercase());
+
+    let mut users: Vec<User> = Vec::new();
+    // loop through vector
+    for i in &users {
+        if i.name == data.name.to_lowercase() { // found the user!
+            if token.value() == "NULL" { // fail if token is NULL
+                warn!("NULL token!");
+                return json!({
+                    "status": "fail",
+                    "reason": "NULL token",
+                });
+            } else if i.session_token == token.value() { // if token matches
+                if i.role == UserType::Normal {
+                    match data.action {
+                        ModActions::Kick => {
+                            info!("kicked user {}", data.target)
+                        },
+                        ModActions::Ban => info!("banned user {}", data.target),
+                        _ => info!("F"),
+                    };
+                    return json!({
+                        "status": "ok",
+                        "reason": "completed action",
+                    });
+                } else {
+                    warn!("user does not have sufficient permissions to perform that action!");
+                    return json!({
+                        "status": "fail",
+                        "reason": "insufficient permissions",
+                    });
+                };
+            } else {
+                warn!("token does not match!");
+                return json!({
+                    "status": "fail",
+                    "reason": "token does not match",
+                })
+            };
+        };
+    };
+    warn!("user not found");
+    json!({
+        "status": "fail",
+        "reason": "user not found"
+    })
+}

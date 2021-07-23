@@ -63,7 +63,7 @@ Whenever user sends a message, client will send message & token and backend will
 - [x] Basic messaging system
 	- [x] Finish up `chat::create_message()`
 	- [x] Create `chat::fetch_messages()`
-	- [ ] Use unix timestamp for date
+	- [x] Use unix timestamp for date
 	- [ ] Create `chat::delete_message()`
 - [x] Switch to using sled database to store users
 	- [ ] Error handling
