@@ -29,7 +29,7 @@ form.addEventListener("submit", async function (event) {
 
 function login() {
   console.log('You have logged in!')
-  document.querySelector("#username").innerHTML = `${uname}`
+  document.querySelector("#username").innerHTML = `Logged in as ${uname}`
   document.querySelector("#errormessage").innerHTML = ''
   localStorage.setItem("username", `${uname}`);
 }
