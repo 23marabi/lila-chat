@@ -2,7 +2,7 @@
 extern crate log;
 use once_cell::sync::Lazy;
 use std::sync::Mutex;
-use crate::file_io::db_read;
+use crate::file_io::db_read_user;
 use rocket::http::{Cookie, Cookies};
 use crate::message::{Message, MessageInput, MessageType};
 use rocket_contrib::json::{Json, JsonValue};
@@ -51,27 +51,23 @@ fn create_message(message: Json<MessageInput>, user: &User) -> JsonValue {
 
 // Check if user can create the message, and then create more info about the message
 fn check_token(token: Cookie, message: Json<MessageInput<'_>>) -> JsonValue {
-    // check if token is correct for name given
-    let users: Vec<User> = db_read(); // create vector out of users in json file
-    for i in &users {
-        // loop through elements
-        if i.name == message.name.to_lowercase() { // if it finds the user in the file
-            if token.value() == "NULL" {
-                warn!("NULL token!");
-                return json!({
-                    "status": "fail",
-                    "reason": "NULL token",
-                });
-            } else if i.session_token == token.value() { // if token matches
-                info!("user exists and given token matches");
-                return create_message(message, i);
-            } else {
-                warn!("token does not match!");
-                return json!({
-                    "status": "fail",
-                    "reason": "token does not match",
-                })
-            };
+    if let Some(user) = db_read_user(&message.name.to_lowercase()).ok().flatten() {
+        // check if token is correct for name given
+        if token.value() == "NULL" {
+            warn!("NULL token!");
+            return json!({
+                "status": "fail",
+                "reason": "NULL token",
+            });
+        } else if user.session_token == token.value() { // if token matches
+            info!("user exists and given token matches");
+            return create_message(message, &user);
+        } else {
+            warn!("token does not match!");
+            return json!({
+                "status": "fail",
+                "reason": "token does not match",
+            })
         };
     };
     warn!("user not found");
