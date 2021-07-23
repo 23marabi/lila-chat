@@ -26,8 +26,8 @@ pub fn register(data: Json<RegisterEvent>) -> JsonValue {
             pronouns: data.pronouns.to_string().to_lowercase(),
             session_token: "NULL".to_string(),
             role: UserType::Normal,
-        };
 
+        };
     db_add(&new_user);
 
     info!(

@@ -27,9 +27,9 @@ form.addEventListener("submit", async function (event) {
   }
 
   try {
-    const isTaken = await getUname();
+    const isNotTaken = await getUname();
 
-    if (isTaken.status === "fail") {
+    if (isNotTaken.status === "fail") {
       register()
     } else {
       document.querySelector("#errormessage").innerHTML = `${uname} is already taken.`
@@ -48,11 +48,13 @@ async function getUname() {
 }
 
 async function register() {
-  const rawResponse = await fetch(`/api/register/${uname.toString().toLowerCase()}/${pin.toString()}/${pronouns.toString().toLowerCase().replace("/", ".")}`, {
+  let sendRegisterInfo = { "name": uname, "pin": pin, "pronouns": pronouns }
+  fetch('/api/register/', {
     method: 'POST',
     headers: {
-    },
-    body: ""
+      'Content-Type': 'application/json',
+  },
+    body: JSON.stringify(sendRegisterInfo),
   });
   document.querySelector("#errormessage").innerHTML = 'Registered!'
   window.location.replace("/login.html")

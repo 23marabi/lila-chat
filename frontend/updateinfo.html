@@ -2,7 +2,7 @@
 <html>
 
     <head>
-        <title>Login Change</title>
+        <title>Update Info</title>
         <meta name="author" content="Luna">
         <meta name="description" content="Chat Login Change">
         <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -13,16 +13,18 @@
 
     <body>
 
-        <h1>Change username and/or pin:</h1>
+        <h1>Change username/pin/pronouns.</h1>
         <p>(leave field blank if not changing)</p>
 
         <div id="box">
-            <form>
+            <form autocomplete="off">
                 <label for="uname">Current Username:</label><br>
                 <input type="text" id="uname" name="uname" required><br>
 
                 <label for="pin">Current Pin:</label><br>
                 <input type="number" id="pin" name="pin" required><br><br>
+
+                <p>What are you changing?</p>
 
                 <label for="newuname">New Username:</label><br>
                 <input type="text" id="newuname" name="newuname"><br>
@@ -30,11 +32,28 @@
                 <label for="newpin">New Pin:</label><br>
                 <input type="number" id="newpin" name="newpin"><br><br>
 
+                <label for="selected">New pronouns:</label><br>
+                <select id="selected" name="selected">
+                    <option value="none"></option>
+                    <option value="she.her">she/her</option>
+                    <option value="he.him">he/him</option>
+                    <option value="they.them">they/them</option>
+                    <option value="it.its">it/its</option>
+                    <option value="fae.faer">fae/faer</option>
+                  </select>
+
+                  <p>Or.</p>
+
+                  <label for="custom">Custom Pronouns:</label><br>
+                  <input type="text" id="custom" name="custom">
+
+                  <p>Format: pronoun/pronoun</p><br>
+
                 <input type="submit" value="Change">
               </form> 
         </div>
 
-        <script src="loginchange.js"></script>
+        <script src="updateinfo.js"></script>
 
         <div id="errormessage"></div>
     </body>
