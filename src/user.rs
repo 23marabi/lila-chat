@@ -71,7 +71,6 @@ pub enum ChangeEventType {
 #[derive(Deserialize, Debug)]
 pub struct ChangeEvent {
     pub name: String, // name of the user
-    pub pin: String, // user's pin
     pub changed_event: ChangeEventType, // which event to change
     pub new_event: String, // the new value for the event
 }

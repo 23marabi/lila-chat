@@ -1,3 +1,8 @@
+## 0.6.0
+- Remove deprecated API
+- `/api/register` & `/api/login` now use JSON data
+- Changing user info now uses Enum (Name, Pin, or Pronouns)
+
 ### 0.5.2
 - When changing a username, it now deletes the previous user instead of creating a new one
 - Database functions should now use some error handling

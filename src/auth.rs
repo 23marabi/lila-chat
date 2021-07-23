@@ -194,7 +194,7 @@ pub fn login(data: Json<LoginEvent>, mut cookies: Cookies) -> JsonValue {
 }
 
 // Change info about a user
-#[post("/users/change", format = "json", data = "<input>")]
+#[post("/change", format = "json", data = "<input>")]
 pub fn change_info(input: Json<ChangeEvent>, mut cookies: Cookies) -> JsonValue {
     // read in the users & hash the pin
     let mut users: Vec<User> = db_read();
