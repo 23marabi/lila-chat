@@ -33,7 +33,7 @@ fn create_message(message: Json<MessageInput>, user: &User) -> JsonValue {
     let message_obj: Message = Message {
         id: Uuid::new_v4(),
         event_type,
-        user: user.name.to_owned(),
+        user: user.name.to_lowercase().to_owned(),
         body: message.body.to_string(),
         created_at: Utc::now(),
     };

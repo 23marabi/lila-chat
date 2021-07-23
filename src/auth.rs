@@ -10,7 +10,7 @@ extern crate sha1;
 #[post("/register", format = "json", data = "<data>")]
 pub fn register(data: Json<RegisterEvent>) -> JsonValue {
     // check if the user exists
-    if let Some(_user) = db_read_user(&data.name).ok().flatten() {
+    if let Some(_user) = db_read_user(&data.name.to_lowercase()).ok().flatten() {
         warn!("Cannot create user {}! User is already in system.", data.name);
         return json!({
             "status": "fail",
@@ -41,26 +41,21 @@ pub fn register(data: Json<RegisterEvent>) -> JsonValue {
     }
 }
 
-fn create_token(name: String, mut user: User) -> String {
+fn create_token(mut user: User) -> String {
     let charset = "1234567890abcdefghijklmnopqrstuvwxyz";
 
-    if user.name == name {
-        user.session_token = generate(12, charset);
-        db_add(&user);
-        info!("succesfully created token for user {}", name);
-        let token = user.session_token.clone();
-        return token;
-    };
-    
-    warn!("something bad happened while creating a token and idk what");
-    return "NULL".to_string();
+    user.session_token = generate(12, charset);
+    db_add(&user);
+    info!("succesfully created token for user {}", user.name);
+    let token = user.session_token.clone();
+    return token;
 }
 
 // Check if user is properly logged in
 #[get("/token/<name>")]
 pub fn check_token(name: String, mut cookies: Cookies) -> JsonValue {
     // check if the user is in the system
-    if let Some(user) = db_read_user(&name).ok().flatten() {
+    if let Some(user) = db_read_user(&name.to_lowercase()).ok().flatten() {
         // get the token from the cookie
         let token = match cookies.get_private("token") {
             None => {
@@ -157,7 +152,7 @@ pub fn login(data: Json<LoginEvent>, mut cookies: Cookies) -> JsonValue {
             info!("pin correct for user {}", &user.name);
 
             // Create token for user & set a cookie
-            let token = create_token(user.name.clone(), user);
+            let token = create_token(user);
             let cookie = Cookie::build("token", token)
                 .path("/")
                 .finish();
@@ -215,7 +210,7 @@ pub fn change_info(input: Json<ChangeEvent>, mut cookies: Cookies) -> JsonValue 
     }
 
     // find the user
-    if let Some(mut user) = db_read_user(&input.name).ok().flatten() {
+    if let Some(mut user) = db_read_user(&input.name.to_lowercase()).ok().flatten() {
         if token.value() == user.session_token { // & if token matches:
             match input.changed_event {
                 ChangeEventType::Name => {
@@ -274,7 +269,7 @@ pub fn get_user(name: String) -> JsonValue {
         return json!({
             "status":"ok",
             "user": {
-                "name": user.name,
+                "name": user.name.to_lowercase(),
                 "pronouns": user.pronouns,
                 "role": user.role,
             },
