@@ -1,4 +1,3 @@
-use crate::user::User;
 use chrono::prelude::*;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;

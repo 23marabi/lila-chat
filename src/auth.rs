@@ -5,13 +5,12 @@ use crate::user::*;
 use rocket_contrib::json::{Json, JsonValue};
 use random_string::generate;
 extern crate sha1;
-use serde::Deserialize;
 
 // Post request to register a user and pin
 #[post("/register", format = "json", data = "<data>")]
 pub fn register(data: Json<RegisterEvent>) -> JsonValue {
     // check if the user exists
-    if let Some(user) = db_read_user(&data.name).ok().flatten() {
+    if let Some(_user) = db_read_user(&data.name).ok().flatten() {
         warn!("Cannot create user {}! User is already in system.", data.name);
         return json!({
             "status": "fail",
@@ -196,9 +195,6 @@ pub fn login(data: Json<LoginEvent>, mut cookies: Cookies) -> JsonValue {
 // Change info about a user
 #[post("/change", format = "json", data = "<input>")]
 pub fn change_info(input: Json<ChangeEvent>, mut cookies: Cookies) -> JsonValue {
-    // read in the users & hash the pin
-    let mut users: Vec<User> = db_read();
-    
     // get token from cookie
     let token = match cookies.get_private("token") {
         None => {
@@ -270,33 +266,24 @@ pub fn change_info(input: Json<ChangeEvent>, mut cookies: Cookies) -> JsonValue 
             "reason": "user doesn't exist",
         });
     }
-    return json!({
-        "status": "fail",
-        "reason": "idk",
-    });
 }
 
 #[get("/users/<name>")]
 pub fn get_user(name: String) -> JsonValue {
-    let users: Vec<User> = db_read();
-    let found_user = users
-        .iter()
-        .filter(|u| u.name == name.to_lowercase())
-        .next();
-
-    match found_user {
-        Some(user) => json!({
+    if let Some(user) = db_read_user(&name.to_lowercase()).ok().flatten() {
+        return json!({
             "status":"ok",
             "user": {
                 "name": user.name,
                 "pronouns": user.pronouns,
                 "role": user.role,
             },
-        }),
-        None => json!({
+        });
+    } else {
+        return json!({
             "status": "fail",
             "reason": format!("user {} not found", name),
-        }),
+        });
     }
 }
 

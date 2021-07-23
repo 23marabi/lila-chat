@@ -22,7 +22,7 @@ pub fn fetch_messages() -> Json<Vec<Message>> {
 }
 
 // Create full message object and write to file
-fn create_message(message: Json<MessageInput>, file: &str, user: &User) -> JsonValue {
+fn create_message(message: Json<MessageInput>, user: &User) -> JsonValue {
     let event_type = match message.body.chars().nth(0).unwrap() {
         '/' => MessageType::Command,
         ':' => MessageType::Emote,
@@ -64,7 +64,7 @@ fn check_token(token: Cookie, message: Json<MessageInput<'_>>) -> JsonValue {
                 });
             } else if i.session_token == token.value() { // if token matches
                 info!("user exists and given token matches");
-                return create_message(message, "messages.json", i);
+                return create_message(message, i);
             } else {
                 warn!("token does not match!");
                 return json!({
