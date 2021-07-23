@@ -6,6 +6,8 @@ extern crate log;
 use crate::user::User;
 use serde_json::Result;
 
+type MyErrorType = Box<dyn std::error::Error>;
+
 fn read_lines<P>(filename: P) -> io::Result<io::Lines<io::BufReader<File>>>
 where
     P: AsRef<Path>,
@@ -135,10 +137,15 @@ pub fn db_read() -> Vec<User> {
 }
 
 // read one user from the database
-pub fn db_read_user(user: &str) -> User {
-    let db: sled::Db = sled::open("users_db").unwrap();
-    let bytes = db.get(user).unwrap().unwrap();
-    let read_user: User = bincode::deserialize(&bytes).unwrap();
-    info!("read user {} from db", read_user.name);
-    return read_user;
+pub fn db_read_user(user: &str) -> std::result::Result<Option<User>, MyErrorType> {
+    let db: sled::Db = sled::open("users_db")?;
+    let entry = db.get(user)?;
+    if let Some(user_entry) = entry {
+        let read_user: User = bincode::deserialize(&user_entry)?;
+        info!("read user {} from db", read_user.name);
+        Ok(Some(read_user))
+    } else {
+        warn!("user {} not found in db!", user);
+        Ok(None)
+    }
 }

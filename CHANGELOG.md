@@ -1,3 +1,8 @@
+### 0.5.2
+- When changing a username, it now deletes the previous user instead of creating a new one
+- Database functions should now use some error handling
+- Functions use `db_read_user()` instead of reading in the whole database
+
 ### 0.5.1
 - `/api/logout` API to delete session token
 - Add basic support for different message types

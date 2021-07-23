@@ -27,34 +27,24 @@ pub fn index() -> &'static str {
 // Post request to register a user and pin
 #[post("/register/<name>/<pin>/<pronouns>")]
 pub fn register_user(name: String, pin: i32, pronouns: String) -> JsonValue {
-    let mut users: Vec<User> = db_read(); // Create an array of users out of parsed json
-    for i in &users {
-        // loop through elements of the vector
-        if i.name == name.to_lowercase() {
-            warn!("Cannot create user {}! User is already in system.", i.name);
-            return json!({
-                "status": "fail",
-                "reason": "user already exists",
-            });
-        };
-    }
-
-    let pin_hashed = sha1::Sha1::from(&pin.to_string()).digest().to_string(); // hash the pin
+    // check if the user exists
+    if let Some(user) = db_read_user(&name).ok().flatten() {
+        warn!("Cannot create user {}! User is already in system.", name);
+        return json!({
+            "status": "fail",
+            "reason": "user already exists",
+        });
+    } else {
+        let pin_hashed = sha1::Sha1::from(&pin.to_string()).digest().to_string(); // hash the pin
     
-    let new_user: User = User {
-        name: name.to_string().to_lowercase(),
-        pin_hashed,
-        pronouns: pronouns.to_string().to_lowercase(),
-        session_token: "NULL".to_string(),
-        role: UserType::Normal,
-    };
+        let new_user: User = User {
+            name: name.to_string().to_lowercase(),
+            pin_hashed,
+            pronouns: pronouns.to_string().to_lowercase(),
+            session_token: "NULL".to_string(),
+            role: UserType::Normal,
+        };
 
-    /*
-    // append to the json file
-    match append_json(&new_user) {
-        Err(why) => panic!("couldn't append json: {}", why),
-        Ok(()) => info!("Succesfully appended to json"),
-    };*/
     db_add(&new_user);
 
     info!(
@@ -66,25 +56,20 @@ pub fn register_user(name: String, pin: i32, pronouns: String) -> JsonValue {
         "status": "ok",
         "reason": format!("user {} registered", new_user.name.to_string().to_lowercase()),
     });
+    }
 }
 
-fn create_token(name: String, mut users: Vec<User>) -> String {
+fn create_token(name: String, mut user: User) -> String {
     let charset = "1234567890abcdefghijklmnopqrstuvwxyz";
 
-    for i in 0..users.len() {
-        if users[i].name == name {
-            users[i].session_token = generate(12, charset);
-            /*
-            match write_json(&users) {
-                Err(why) => panic!("coudln't write to file: {}", why),
-                Ok(()) => info!("succesfully wrote to file"),
-            };*/
-            db_write(&users);
-            info!("succesfully created token for user {}", name);
-            let token = users[i].session_token.clone();
-            return token;
-        };
+    if user.name == name {
+        user.session_token = generate(12, charset);
+        db_add(&user);
+        info!("succesfully created token for user {}", name);
+        let token = user.session_token.clone();
+        return token;
     };
+    
     warn!("something bad happened while creating a token and idk what");
     return "NULL".to_string();
 }
@@ -92,138 +77,137 @@ fn create_token(name: String, mut users: Vec<User>) -> String {
 // Check if user is properly logged in
 #[get("/token/<name>")]
 pub fn check_token(name: String, mut cookies: Cookies) -> JsonValue {
-    let users: Vec<User> = db_read();
-    for i in &users {
-        if i.name == name.to_lowercase() {
-            let token = match cookies.get_private("token") {
-                None => {
-                    warn!("couldn't get token cookie!");
-                    return json!({
-                        "status": "fail",
-                        "reason": "could not read cookie",
-                    });
-                },
-                Some(token) => token,
-            };
-            if token.value() == "NULL" {
-                warn!("NULL token!");
+    // check if the user is in the system
+    if let Some(user) = db_read_user(&name).ok().flatten() {
+        // get the token from the cookie
+        let token = match cookies.get_private("token") {
+            None => {
+                warn!("couldn't get token cookie!");
                 return json!({
                     "status": "fail",
-                    "reason": "NULL token",
+                    "reason": "could not read cookie",
                 });
-            } else if token.value() == i.session_token {
-                info!("user {} has correct session token", name);
-                return json!({
-                    "status": "ok",
-                    "reason": "correct token",
-                });
-            } else {
-                info!("user {} has incorrect token!", name);
-                return json!({
-                    "status": "fail",
-                    "reason": "incorrect token",
-                });
-            }
+            },
+            Some(token) => token,
+        };
+
+        // check the token value
+        if token.value() == "NULL" {
+            warn!("NULL token!");
+            return json!({
+                "status": "fail",
+                "reason": "NULL token",
+            });
+        } else if token.value() == user.session_token {
+            info!("user {} has correct session token", name);
+            return json!({
+                "status": "ok",
+                "reason": "correct token",
+            });
+        } else {
+            info!("user {} has incorrect token!", name);
+            return json!({
+                "status": "fail",
+                "reason": "incorrect token",
+            });
         }
-    }
+    } else {
     warn!("user {} not found", name);
     return json!({
         "status": "fail",
         "reason": "user not found",
     });
+    }
 }
 
 // Logout API
 #[post("/logout", format = "json", data = "<info>")]
 pub fn logout(info: Json<LogoutEvent>, mut cookies: Cookies) -> JsonValue {
-    let mut users: Vec<User> = db_read();
-    for i in 0..users.len() {
-        if info.name.to_lowercase() == users[i].name {
-            let token = match cookies.get_private("token") {
-                None => {
-                    warn!("couldn't get token cookie!");
-                    return json!({
-                        "status": "fail",
-                        "reason": "could not read cookie",
-                    });
-                },
-                Some(token) => token,
-            };
-            if token.value() == "NULL" {
-                warn!("NULL token!");
+    if let Some(mut user) = db_read_user(&info.name.to_lowercase()).ok().flatten() {
+        let token = match cookies.get_private("token") {
+            None => {
+                warn!("couldn't get token cookie!");
                 return json!({
                     "status": "fail",
-                    "reason": "NULL token",
+                    "reason": "could not read cookie",
                 });
-            } else if token.value() == users[i].session_token {
-                cookies.remove_private(Cookie::named("token"));
-                users[i].session_token = "NULL".to_string();
-                info!("logged out user {}", info.name);
-                return json!({
-                    "status": "ok",
-                    "reason": "logged out",
-                });
-            } else {
-                warn!("token does not match! cannot logout");
-                return json!({
-                    "status": "fail",
-                    "reason": "token does not match",
-                });
-            }
+            },
+            Some(token) => token,
+        };
+        if token.value() == "NULL" {
+            warn!("NULL token!");
+            return json!({
+                "status": "fail",
+                "reason": "NULL token",
+            });
+        } else if token.value() == user.session_token {
+            cookies.remove_private(Cookie::named("token"));
+            user.session_token = "NULL".to_string();
+            db_add(&user);
+            info!("logged out user {}", info.name);
+            return json!({
+                "status": "ok",
+                "reason": "logged out",
+            });
+        } else {
+            warn!("token does not match! cannot logout");
+            return json!({
+                "status": "fail",
+                "reason": "token does not match",
+            });
         }
+    } else {
+        warn!("failed to log out user {}, user not found", info.name);
+        return json!({
+            "status": "fail",
+            "reason": "user not found",
+        });
     }
-    warn!("logged out user {}, user not found", info.name);
-    return json!({
-        "status": "fail",
-        "reason": "user not found",
-    });
 }
 
 // Check if pin matches user
 #[get("/users/<name>/<pin>")]
 pub fn check_pin(mut cookies: Cookies, name: String, pin: i32) -> JsonValue {
-    let users: Vec<User> = db_read();
-    let hashed_pin_input = sha1::Sha1::from(&pin.to_string()).digest().to_string();
-    for i in &users {
-        // loop through the vector
-        if i.name == name.to_lowercase() {
-            if i.pin_hashed == hashed_pin_input {
-                info!("pin correct for user {}", i.name);
+    if let Some(user) = db_read_user(&name.to_lowercase()).ok().flatten() {
+        let hashed_pin_input = sha1::Sha1::from(&pin.to_string()).digest().to_string();
 
-                // Create token for user & set a cookie
-                let token = create_token(i.name.clone(), users);
-                let cookie = Cookie::build("token", token)
-                    .path("/")
-                    .finish();
-                cookies.remove_private(Cookie::named("token"));
-                cookies.add_private(cookie);
-                info!("set the token cookie");
+        if user.pin_hashed == hashed_pin_input { // check if pin hash matches
+            info!("pin correct for user {}", &user.name);
 
-                return json!({
-                    "status": "ok",
-                    "reason": "pin matches",
-                });
-            } else {
-                cookies.remove_private(Cookie::named("token"));
-                info!("removed private cookie");
-                warn!("pin incorrect for user {}", i.name);
-                return json!({
-                    "status": "fail",
-                    "reason": "incorrect pin",
-                });
-            };
+            // Create token for user & set a cookie
+            let token = create_token(user.name.clone(), user);
+            let cookie = Cookie::build("token", token)
+                .path("/")
+                .finish();
+            cookies.remove_private(Cookie::named("token"));
+            cookies.add_private(cookie);
+            info!("set the token cookie");
+
+            return json!({
+                "status": "ok",
+                "reason": "pin matches",
+            });
+        } else {
+            cookies.remove_private(Cookie::named("token"));
+            info!("removed private cookie");
+            warn!("pin incorrect for user {}", user.name);
+            return json!({
+                "status": "fail",
+                "reason": "incorrect pin",
+            });
         };
+    } else {
+        cookies.remove_private(Cookie::named("token"));
+        info!("removed private cookie");
+        warn!(
+            "cannot check pin for user {} as they do not exist",
+            name.to_string().to_lowercase()
+        );
+        return json!({
+            "status": "fail",
+            "reason": format!("user {} doesn't exist", name.to_string().to_lowercase()),
+        });
     }
-    cookies.remove_private(Cookie::named("token"));
-    info!("removed private cookie");
-    warn!(
-        "cannot check pin for user {} as they do not exist",
-        name.to_string().to_lowercase()
-    );
-    return json!({
-        "status": "fail",
-        "reason": format!("user {} doesn't exist", name.to_string().to_lowercase()),
-    });
 }
 
 // Change info about a user
@@ -251,54 +235,57 @@ pub fn change_info(input: Json<ChangeEvent>, mut cookies: Cookies) -> JsonValue 
         });
     }
 
-    // loop through the users
-    for i in 0..users.len() {
-        if input.name.to_lowercase() == users[i].name { // if user found...
-            if token.value() == users[i].session_token { // & if token matches:
-                if input.changed_event == "name" {
-                    // remove the user first
-                    db_remove(&users[i]);
-                    // change the name
-                    users[i].name = input.new_event.clone();
-                    info!("changed name of {} to {}", input.name, input.new_event);
-                    db_write(&users);
-                    return json!({
-                        "status": "ok",
-                        "reason": format!("changed name of {} to {}", input.name, input.new_event),
-                    });
-                } else if input.changed_event == "pin" {
-                    // change the pin
-                    let new_hashed_pin = sha1::Sha1::from(&input.new_event).digest().to_string();
-                    users[i].pin_hashed = new_hashed_pin.clone();
-                    db_write(&users);
-                    info!("changed pin of {}", input.name);
-                    return json!({
-                        "status": "ok",
-                        "reason": "changed pin",
-                    });
-                } else if input.changed_event == "pronouns" {
-                    // change the pronouns
-                    users[i].pronouns = input.new_event.clone();
-                    info!("changed pronouns of {} to {}", input.name, input.new_event);
-                    db_write(&users);
-                    return json!({
-                        "status": "ok",
-                        "reason": "successfully changed pronouns",
-                    });
-                };
-            } else {
-                warn!("incorrect pin for user {}", input.name);
+    // find the user
+    if let Some(mut user) = db_read_user(&input.name).ok().flatten() {
+        if token.value() == user.session_token { // & if token matches:
+            if input.changed_event == "name" {
+                // remove the user first
+                db_remove(&user);
+                // change the name
+                user.name = input.new_event.clone();
+                info!("changed name of {} to {}", input.name, input.new_event);
+                db_add(&user);
                 return json!({
-                    "status": "fail",
-                    "reason": "incorrect pin",
+                    "status": "ok",
+                    "reason": format!("changed name of {} to {}", input.name, input.new_event),
+                });
+            } else if input.changed_event == "pin" {
+                // change the pin
+                let new_hashed_pin = sha1::Sha1::from(&input.new_event).digest().to_string();
+                user.pin_hashed = new_hashed_pin.clone();
+                db_add(&user);
+                info!("changed pin of {}", input.name);
+                return json!({
+                    "status": "ok",
+                    "reason": "changed pin",
+                });
+            } else if input.changed_event == "pronouns" {
+                // change the pronouns
+                user.pronouns = input.new_event.clone();
+                info!("changed pronouns of {} to {}", input.name, input.new_event);
+                db_add(&user);
+                return json!({
+                    "status": "ok",
+                    "reason": "successfully changed pronouns",
                 });
             };
-        };
-    };
-    warn!("couldn't change users info, user does not exist");
+        } else {
+            warn!("incorrect pin for user {}", input.name);
+            return json!({
+               "status": "fail",
+                "reason": "incorrect pin",
+            });
+       };
+    } else {
+        warn!("couldn't change users info, user does not exist");
+        return json!({
+            "status": "fail",
+            "reason": "user doesn't exist",
+        });
+    }
     return json!({
         "status": "fail",
-        "reason": "user doesn't exist",
+        "reason": "idk",
     });
 }
 
@@ -421,50 +408,45 @@ pub fn moderation_actions(data: Json<ModerationAction>, mut cookies: Cookies) ->
         },
         Some(token) => token,
     };
-    let mut user = db_read_user(&data.name.to_lowercase());
-
-    let mut users: Vec<User> = Vec::new();
-    // loop through vector
-    for i in &users {
-        if i.name == data.name.to_lowercase() { // found the user!
-            if token.value() == "NULL" { // fail if token is NULL
-                warn!("NULL token!");
-                return json!({
-                    "status": "fail",
-                    "reason": "NULL token",
-                });
-            } else if i.session_token == token.value() { // if token matches
-                if i.role == UserType::Normal {
-                    match data.action {
-                        ModActions::Kick => {
-                            info!("kicked user {}", data.target)
-                        },
-                        ModActions::Ban => info!("banned user {}", data.target),
-                        _ => info!("F"),
-                    };
-                    return json!({
-                        "status": "ok",
-                        "reason": "completed action",
-                    });
-                } else {
-                    warn!("user does not have sufficient permissions to perform that action!");
-                    return json!({
-                        "status": "fail",
-                        "reason": "insufficient permissions",
-                    });
+    if let Some(user) = db_read_user(&data.name.to_lowercase()).ok().flatten() {
+        if token.value() == "NULL" { // fail if token is NULL
+            warn!("NULL token!");
+            return json!({
+                "status": "fail",
+                "reason": "NULL token",
+            });
+        } else if user.session_token == token.value() { // if token matches
+            if user.role == UserType::Normal {
+            match data.action {
+                    ModActions::Kick => {
+                        info!("kicked user {}", data.target)
+                    },
+                    ModActions::Ban => info!("banned user {}", data.target),
+                    _ => info!("F"),
                 };
+                return json!({
+                    "status": "ok",
+                    "reason": "completed action",
+                });
             } else {
-                warn!("token does not match!");
+                warn!("user does not have sufficient permissions to perform that action!");
                 return json!({
                     "status": "fail",
-                    "reason": "token does not match",
-                })
+                    "reason": "insufficient permissions",
+                });
             };
+        } else {
+            warn!("token does not match!");
+            return json!({
+                "status": "fail",
+                "reason": "token does not match",
+            })
         };
-    };
-    warn!("user not found");
-    json!({
-        "status": "fail",
-        "reason": "user not found"
-    })
+    } else {
+        warn!("user not found");
+        return json!({
+            "status": "fail",
+            "reason": "user not found"
+        });
+    }
 }
