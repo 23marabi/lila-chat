@@ -63,23 +63,24 @@ This API will return info about a user on success.
 `GET /api/users/<name>`
 
 On success returns JSON in format:
-
-	`status`: `ok`
-	`user`:
-		`name`: user's name
-		`pronouns`: user's pronouns
-		`role`: the users role, one of either `Normal`, `Moderator`, or `Admin
+```
+status: ok
+user:
+	name: user's name
+	pronouns: user's pronouns
+	role: the users role, one of either 'Normal', 'Moderator', or 'Admin'
+```
 
 eg:
 
 ```
 {
-	status: "ok",
-	user: {
-		name: "example",
-		pronouns: "they/them",
-		role: "Normal",
-	},
+status: "ok",
+user: {
+	name: "example",
+	pronouns: "they/them",
+	role: "Normal",
+},
 }
 ```
 
