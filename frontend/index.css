@@ -1,0 +1,65 @@
+html {
+    background: #F7A8B8;
+    font-family: "Lucida Console", "Courier New", monospace;
+}
+
+a {
+    color: black;
+    font-weight: bold;
+    text-decoration: none;
+}
+
+#streamchat {
+    display: flex;
+    height: 100%;
+    max-width: 960px;
+    margin: 0 auto;
+
+}
+
+#stream {
+    background-color: white;
+    padding: 5%;
+    box-shadow: 10px 10px 10px black;
+    border-radius: 5px;
+    width: 854px;
+    height: 480px;
+    margin-right: 0.3em;
+    margin-left: -40%;
+    margin-top: auto;
+    margin-bottom: 20%;
+}
+
+#chatbox {
+    flex: 1;
+    height: 53rem;
+    margin-left: 0.3em;
+    margin-right: -30%;
+    border: none;
+}
+
+.navigation-list {
+    display: flex;
+    list-style-type: none;
+    flex-wrap: wrap;
+    gap: 10px;
+    justify-content: center;
+    padding: 0;
+}
+
+.buttons {
+        width: 150px;
+        background-color: #55CDFC;
+        margin: auto;
+        margin-bottom: 2%;
+        display: inline-flex;
+        justify-content: center;
+        opacity: 0.8;
+        font-size: larger;
+        color: black;
+        padding: 15px;
+        border-bottom: solid;
+        border-left: solid;
+        border-color: white;
+        border-width: 1px;
+}
