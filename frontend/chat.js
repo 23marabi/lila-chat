@@ -12,6 +12,7 @@ form.addEventListener("submit", async function (event) {
 
     formMessage = formData.get('message').toString();
 
+        //KINDA UNNECESSARY
         //CHECKS TO SEE IF THE PERSON IS LOGGED IN IN ORDER TO SEND A MESSAGE.
         const response = await fetch(`api/token/${username}/`);
         const matches = await response.json();
@@ -75,11 +76,10 @@ function printText(text) {
 //LOGGED IN STUFF
 //TODO ADD CHECK TO SEE IF USERNAME AND TOKEN MATCHES
 function loggedIn() {
-    username = localStorage.getItem('username');
-    if (username === null) {
+    if (username === '' || username === null) {
         document.querySelector("#loggeduser").innerHTML = 'You are not logged in'
     } else {
-        document.querySelector("#loggeduser").innerHTML = `You are logged in as ${username}`
+        document.querySelector("#loggeduser").innerHTML = `You are logged in as "${username}"`
     }
 }
 

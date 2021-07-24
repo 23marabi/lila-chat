@@ -10,6 +10,7 @@ form {
 }
 
 input {
+    margin-top: 1%;
     padding: 2%;
     width: 100%;
     background-color: darkgrey;

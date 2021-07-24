@@ -48,10 +48,10 @@ async function loginFetch() {
 // FUNCTIONS FOR WHETHER THE LOGIN WAS A SUCCESS OR FAILURE
 
 function login() {
-  window.location.replace("/index.html")
   document.querySelector("#errormessage").innerHTML = ''
   localStorage.setItem('username', `${uname}`);
   document.querySelector("#username").innerHTML = `Logged in as ${uname}`
+  window.location.replace("/index.html")
 }
 
 function incorrectLogin() {

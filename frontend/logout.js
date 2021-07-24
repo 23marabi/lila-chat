@@ -1,5 +1,6 @@
-//VARIBLES
-myStorage = window.localStorage;
+// //VARIBLES
+// myStorage = window.localStorage;
+// allCookies = document.cookie;
 
 //LOGOUT FETCH FUNCTION
 
@@ -19,28 +20,13 @@ async function logout() {
   loggedIn()
 }
 
-//CHECKS TO SEE IF USERNAME MATCHES TOKEN 
-let tokenUpdate = window.setInterval(checkToken, 1000);
+// // IF THERE IS A TOKEN BUT NO USERNAME LOGOUT
+// if (allCookies !== '' && myStorage.length === 0) {
+//   logout()
+// }
 
-async function checkToken() {
-  const response = await fetch(`api/token/${username}/`);
-  const matches = await response.json();
-
-  //YES THIS IS CONFUSING I KNOW.
-  if (matches.status === "fail") {
-    loggedOut()
-  }
-
-  // IF NO USERNAME BUT HAS A TOKEN THEN LOGOUT
-
-  if (matches.status === "ok" && myStorage.length === 0) {
-    logout()
-  }
-}
-
-//AND IF THEY DON'T HAVE A TOKEN CLEARS THE LOCAL STORED USERNAME
-
-function loggedOut() {
-  localStorage.removeItem('username')
-  document.querySelector("#loggeduser").innerHTML = 'You are not logged in'
-}
+// // IF THERE IS NO COOKIE BUT A USERNAME GET RID OF USERNAME LOCALLY.
+// if (allCookies === '' && myStorage.length !== 0) {
+//   localStorage.removeItem('username')
+//   document.querySelector("#loggeduser").innerHTML = 'You are not logged in'
+// }
