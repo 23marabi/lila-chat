@@ -6,7 +6,6 @@ let pin = document.querySelector('#pin').value;
 let selected = document.querySelector('#selected').value;
 let custom = document.querySelector('#custom').value;
 let pronouns = ''
-let responseText;
 const form = document.querySelector('form');
 
 //SUBMIT FUNCTION &CHECKING IF USERNAME IS TAKEN
@@ -20,32 +19,28 @@ form.addEventListener("submit", async function (event) {
   selected = formData.get('selected');
   custom = formData.get('custom')
 
-  if (custom !== '') {
-    pronouns = custom
+  if (custom === '' && selected === 'none') {
+    newPronouns = ''
+  } else if (custom !== '') {
+    newPronouns = custom
   } else {
-    pronouns = selected
+    newPronouns = selected
   }
 
-  try {
-    const isNotTaken = await getUname();
+  //CHECKS IF A USERNAME IS TAKEN
 
-    if (isNotTaken.status === "fail") {
-      register()
-    } else {
-      document.querySelector("#errormessage").innerHTML = `${uname} is already taken.`
-    }
-  } catch {
-    document.querySelector("#errormessage").innerHTML = 'An Error has Occurred. Try again later.'
+  const response = await fetch(`api/users/${uname}/`);
+  const isTaken = await response.json();
+
+  //YES THIS IS CONFUSING I KNOW.
+  if (isTaken.status === "fail") {
+    register()
+  } else {
+    document.querySelector('#errormessage').innerHTML = `${uname} is already taken.`
   }
 })
 
 //FETCH FUNCTIONS. GETTING USERNAME FROM API & REGISTERING USER ASSIGNED NAME AND PIN. 
-
-async function getUname() {
-  let response = await fetch(`/api/users/${uname}`);
-  responseJson = await response.json();
-  return responseJson;
-}
 
 async function register() {
   let sendRegisterInfo = { "name": uname, "pin": pin, "pronouns": pronouns }
@@ -53,10 +48,13 @@ async function register() {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-  },
+    },
     body: JSON.stringify(sendRegisterInfo),
   });
   document.querySelector("#errormessage").innerHTML = 'Registered!'
   window.location.replace("/login.html")
 }
 
+// function errorMessage() {
+//   document.querySelector("#errormessage").innerHTML = 'An error has occurrred. Please try again later.'
+// }

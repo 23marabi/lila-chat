@@ -1,5 +1,4 @@
 // VARIABLES
-let date = '2021-07-22'
 let messageCount = 0;
 let username = localStorage.getItem('username');
 const form = document.querySelector('form');
@@ -11,16 +10,24 @@ form.addEventListener("submit", async function (event) {
     event.preventDefault();
     const formData = new FormData(form);
 
-    formMessage = formData.get('message');
+    formMessage = formData.get('message').toString();
 
-    sendMessage()
-
+        //CHECKS TO SEE IF THE PERSON IS LOGGED IN IN ORDER TO SEND A MESSAGE.
+        const response = await fetch(`api/token/${username}/`);
+        const matches = await response.json();
+      
+        //YES THIS IS CONFUSING I KNOW.
+        if (matches.status === "ok") {
+          sendMessage()
+        } else {
+            document.querySelector("#errormessage").innerHTML = 'Username and token mismatch. Try logging in again.'
+        }
 })
 
 //SEND MESSAGE FETCH FUNCTION
 
 async function sendMessage() {
-    sendMessageInfo = { "name": username, "body": formMessage, "date": date }
+    sendMessageInfo = { "name": username, "body": formMessage }
     fetch('/api/message/send', {
         method: 'POST',
         headers: {
@@ -39,17 +46,17 @@ let messageUpdate = window.setInterval(fetchMessages, 500);
 async function fetchMessages() {
     const response = await fetch('/api/message/messages.json');
     const recievedMessages = await response.json();
-    document.getElementById("innerchatbox").innerHTML = ""
+    document.getElementById("chatbox").innerHTML = ""
 
     for (const message of recievedMessages) {
-      printText(message.user.bold() + ": " + message.body);
+        printText(message.user.bold().toString() + ": " + message.body.toString());
     }
 
-        
+
     if (recievedMessages.length != messageCount) {
-        let scroll = document.getElementById("innerchatbox");
+        let scroll = document.getElementById("chatbox");
         scroll.scrollTop = scroll.scrollHeight;
-        }
+    }
 
     messageCount = recievedMessages.length;
 }
@@ -59,7 +66,7 @@ async function fetchMessages() {
 
 function printText(text) {
     let p = document.createElement("p");
-    const div = document.getElementById("innerchatbox");
+    const div = document.getElementById("chatbox");
     div.appendChild(p)
     p.innerHTML = text
 }
@@ -67,9 +74,16 @@ function printText(text) {
 
 //LOGGED IN STUFF
 //TODO ADD CHECK TO SEE IF USERNAME AND TOKEN MATCHES
-if (username === null) {
-    document.querySelector("#loggeduser").innerHTML = 'You are not logged in'
-    username = ''
-} else {
-    document.querySelector("#loggeduser").innerHTML = `You are logged in as ${username}`
+function loggedIn() {
+    username = localStorage.getItem('username');
+    if (username === null) {
+        document.querySelector("#loggeduser").innerHTML = 'You are not logged in'
+    } else {
+        document.querySelector("#loggeduser").innerHTML = `You are logged in as ${username}`
+    }
 }
+
+loggedIn()
+
+
+//REVIECE USERS PRONOUNS

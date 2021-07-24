@@ -8,7 +8,6 @@ let newPin = document.querySelector('#newpin').value;
 const form = document.querySelector('form');
 let selected = document.querySelector('#selected').value;
 let custom = document.querySelector('#custom').value;
-let responseText;
 let updateEvent = ''
 let newEvent = ''
 let newPronouns = ''
@@ -27,6 +26,8 @@ form.addEventListener("submit", async function (event) {
   selected = formData.get('selected');
   custom = formData.get('custom')
 
+
+  //SETS NEWPRONOUNS DEPENDING ON WHAT THE USER SELECTED/TYPED
   if (custom === '' && selected === 'none') {
     newPronouns = ''
   } else if (custom !== '') {
@@ -35,78 +36,94 @@ form.addEventListener("submit", async function (event) {
     newPronouns = selected
   }
 
-//CHECKS IF THE USER IS CHANGING MORE THAN ONE TEXT FIELD AT A TIME
-  let onlyChangeOne = document.querySelector("#errormessage").innerHTML = 'You can only change one at a time!'
+  //CHECKS IF A USERNAME IS TAKEN
+  if (newUname !== '') {
+    const response = await fetch(`api/users/${newUname}/`);
+    const isTaken = await response.json();
+
+    if (isTaken.status === "ok") {
+      document.querySelector('#errormessage').innerHTML = `${newUname} is already taken.`
+      return;
+    } else {
+    }
+  }
+
+  //CHECKS IF THE USER IS CHANGING MORE THAN ONE TEXT FIELD AT A TIME
   if (newUname !== '' && newPin !== '') {
-    onlyChangeOne
+    document.querySelector("#errormessage").innerHTML = 'You can only change one at a time!'
+    return;
   } else if (newUname !== '' && newPronouns !== '') {
-    onlyChangeOne
+    document.querySelector("#errormessage").innerHTML = 'You can only change one at a time!'
+    return;
   } else if (newPin !== '' && newPronouns !== '') {
-    onlyChangeOne
+    document.querySelector("#errormessage").innerHTML = 'You can only change one at a time!'
+    return;
+  } else if (newUname !== '' && newPin !== '' && newPronouns !== '') {
+    document.querySelector("#errormessage").innerHTML = 'You can only change one at a time!'
+    return;
   } else {
-    checkLoginInfo()
   }
 
 
-// ASSIGNS VARIABLES TO BE SENT TO API
+  // ASSIGNS VARIABLES TO BE SENT TO API
   if (newUname === '' && newPin === '' && newPronouns !== '') {
     newEvent = newPronouns
-    updateEvent = 'pronouns'
+    updateEvent = 'Pronouns'
   } else if (newUname === '' && newPronouns === '' && newPin !== '') {
     newEvent = newPin
-    updateEvent = 'pin'
+    updateEvent = 'Pin'
   } else if (newPin === '' && newPronouns === '' && newUname !== '') {
     newEvent = newUname
-    updateEvent = 'name'
+    updateEvent = 'Name'
   } else if (newPin === '' && newUname === '' && newPronouns === '') {
     document.querySelector("#errormessage").innerHTML = 'Please enter a new name, pin, or pronouns!'
+    return;
   } else {
-    checkLoginInfo()
   }
+  
+  loginStatus()
 
-  //CHECKS IF USERNAME IS TAKEN
-    const isTaken = await getUname();
-
-    if (isTaken.status === 'ok') {
-      document.querySelector("#errormessage").innerHTML = `username ${newUname} is already taken! `
-    }
 })
 
+//CHECKS IF THE LOGIN IS A SUCCESS
+async function loginStatus() {
+  const loginInfo = await checkLoginInfo();
 
-// FETCH FUNTIONS. FETCHING USERNAME TO SEE IF ITS TAKEN.
-
-async function getUname() {
-  let response = await fetch(`/api/users/${newUname}`);
-  responseJson = await response.json();
-  return responseJson;
-}
-
-
-//FETCH FUNCTION TO UPDATE USER INFO
-
-  //TODO ADD CHECKING THE TOKEN with LOGIN IN IF STATEMENT
-//CHECKING IF THE USER CAN LOGIN WITH GIVEN CURRENT USERNAME AND PIN
-async function checkLoginInfo() {
-  const response = await fetch(`/api/users/${uname}/${pin}`);
-  const loginInfo = await response.json();
-
-  if (loginInfo.status === "ok") {
+  if (loginInfo.status === 'ok') {
     updateInfo()
   } else {
     incorrectLogin()
   }
 }
 
+//TODO ADD CHECKING THE TOKEN WITH LOGIN IN IF STATEMENT
+//CHECKING IF THE USER CAN LOGIN WITH GIVEN CURRENT USERNAME AND PIN
+// LOGIN FETCH
+
+async function checkLoginInfo() {
+  let sendLoginInfo = { "name": uname, "pin": pin }
+  const res = await fetch('/api/login/', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(sendLoginInfo),
+  });
+  return await res.json();
+}
+
+//FETCH FUNCTION TO UPDATE USER INFO
+
 async function updateInfo() {
   let sendUpdateInfo = { "name": uname, "pin": pin, "changed_event": updateEvent, "new_event": newEvent }
-  fetch('/api/users/change', {
+  fetch('/api/change', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
     },
     body: JSON.stringify(sendUpdateInfo),
   });
-  //document.querySelector("#errormessage").innerHTML = 'Login Changed!'
+  document.querySelector("#errormessage").innerHTML = 'Login Changed!'
   //window.location.replace("/login.html")
 }
 

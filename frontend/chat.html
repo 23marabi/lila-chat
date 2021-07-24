@@ -15,22 +15,27 @@
 
         <h1>Welcome to the chat!</h1>
 
-        <div id="chatbox">
+        <div id="outerchatbox">
 
-            <div id="innerchatbox">
+            <div id="chatbox">
 
             </div>
             
             <form autocomplete="off">
-            <label for="message">Input Message Here:</label>
             <input type="text" id="message" name="message" required>
+            <label for="message">Input Message Above</label>
             </form>
 
         </div>
 
         <div id="loggeduser"></div>
 
+        <button type="button" id="logoutbutton" onclick="logout()">Logout</button> 
+
+        <div id="errormessage"></div>
+        
         <script src="chat.js"></script>
+        <script src="logout.js"></script>
 
     </body>
 

@@ -7,28 +7,40 @@
         <meta name="description" content="Maya's Stream">
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <meta charset="UTF-8">
-        <link rel="stylesheet" href="stream.css">
+        <link rel="stylesheet" href="index.css">
         <link rel="icon" href="/favicon.svg">
     </head>
 
     <body>
 <nav>
 
-<a href="register.html">Register Page</a>
+    <ul class="navigation-list">
+        <li><a href="index.html"><div class="buttons">Stream</div></a></li>
+        <li><a href="chat.html"><div class="buttons">Just Chat</div></a></li>
+        <li><a href="register.html"><div class="buttons">Register</div></a></li>
+        <li><a href="login.html"><div class="buttons">Login</div></a></li>
+        <li><a href="updateinfo.html"><div class="buttons">Update Info</div></a></li>
+    </ul>
 
-<a href="login.html">Login Page</a>
-
-<a href="updateinfo.html">Update Info Page</a>
 
 </nav>
+
+    <main>
+
+        <section>
+
         <div id="streamchat">
             <div id="stream">
-                <h1>Test Text</h1>
+                <h1>This is where the stream will go.</h1>
             </div>
 
-            <iframe id="chatbox" src="chat.html" title="chat box"></iframe> 
+            <iframe id="chatbox" src="chat.html" title="chat box" scrolling="no"></iframe> 
             
         </div>
+
+        </section>
+
+    </main>
     </body>
 
 </html>
