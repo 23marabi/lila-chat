@@ -8,7 +8,7 @@ let custom = document.querySelector('#custom').value;
 let pronouns = ''
 const form = document.querySelector('form');
 
-//SUBMIT FUNCTION &CHECKING IF USERNAME IS TAKEN
+//SUBMIT FUNCTION & CHECKING IF USERNAME IS TAKEN
 
 form.addEventListener("submit", async function (event) {
   event.preventDefault();
@@ -20,39 +20,61 @@ form.addEventListener("submit", async function (event) {
   custom = formData.get('custom')
 
   if (custom === '' && selected === 'none') {
-    newPronouns = ''
+    pronouns = ''
   } else if (custom !== '') {
-    newPronouns = custom
+    pronouns = custom
   } else {
-    newPronouns = selected
+    pronouns = selected
   }
 
-  //CHECKS IF A USERNAME IS TAKEN
+
+  //IF THE API SUCCESSFULLY REGISTERS A USER THEN DO THIS
+  try {
+    const regRes = await isUnameTaken();
+
+    if (regRes == null) {
+      return;
+    }
+
+    if (regRes.status === 'ok') {
+      document.querySelector("#errormessage").innerHTML = 'Registered!'
+      window.location.replace("/login.html")
+    } else {
+      document.querySelector("#errormessage").innerHTML = 'Failed to register. Try again later.'
+    }
+  } catch (e) {
+    console.log(e);
+    document.querySelector("#errormessage").innerHTML = 'An Error has Occurred. Try again later. ' + e.toString();
+  }
+
+})
+
+//CHECKS IF A USERNAME IS TAKEN
+async function isUnameTaken() {
 
   const response = await fetch(`api/users/${uname}/`);
   const isTaken = await response.json();
 
   //YES THIS IS CONFUSING I KNOW.
   if (isTaken.status === "fail") {
-    register()
+    return await register()
   } else {
     document.querySelector('#errormessage').innerHTML = `${uname} is already taken.`
   }
-})
+}
 
 //FETCH FUNCTIONS. GETTING USERNAME FROM API & REGISTERING USER ASSIGNED NAME AND PIN. 
 
 async function register() {
   let sendRegisterInfo = { "name": uname, "pin": pin, "pronouns": pronouns }
-  fetch('/api/register/', {
+  const response = await fetch('/api/register/', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
     },
     body: JSON.stringify(sendRegisterInfo),
   });
-  document.querySelector("#errormessage").innerHTML = 'Registered!'
-  window.location.replace("/login.html")
+  return await response.json()
 }
 
 // function errorMessage() {

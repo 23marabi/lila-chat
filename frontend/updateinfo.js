@@ -36,17 +36,7 @@ form.addEventListener("submit", async function (event) {
     newPronouns = selected
   }
 
-  //CHECKS IF A USERNAME IS TAKEN
-  if (newUname !== '') {
-    const response = await fetch(`api/users/${newUname}/`);
-    const isTaken = await response.json();
-
-    if (isTaken.status === "ok") {
-      document.querySelector('#errormessage').innerHTML = `${newUname} is already taken.`
-      return;
-    } else {
-    }
-  }
+  unameCheck()
 
   //CHECKS IF THE USER IS CHANGING MORE THAN ONE TEXT FIELD AT A TIME
   if (newUname !== '' && newPin !== '') {
@@ -80,17 +70,49 @@ form.addEventListener("submit", async function (event) {
     return;
   } else {
   }
-  
-  loginStatus()
+
+
+  //IF THE API SUCCESSFULLY UPDATES INFO FOR A USER THEN DO THIS
+  try {
+    const updateResponse = await loginStatus();
+
+    if (updateResponse == null) {
+      return;
+    }
+
+    if (updateResponse.status === 'ok') {
+      document.querySelector("#errormessage").innerHTML = 'Login Changed!'
+      window.location.replace("/login.html")
+    } else {
+      document.querySelector("#errormessage").innerHTML = 'Failed to update info. Try again later.'
+    }
+  } catch (e) {
+    console.log(e);
+    document.querySelector("#errormessage").innerHTML = 'An Error has Occurred. Try again later. ' + e.toString();
+  }
 
 })
+
+  //CHECKS IF A USERNAME IS TAKEN
+  async function unameCheck(){
+  if (newUname !== '') {
+    const response = await fetch(`api/users/${newUname}/`);
+    const isTaken = await response.json();
+
+    if (isTaken.status === "ok") {
+      document.querySelector('#errormessage').innerHTML = `${newUname} is already taken.`
+      return;
+    } else {
+    }
+  }
+}
 
 //CHECKS IF THE LOGIN IS A SUCCESS
 async function loginStatus() {
   const loginInfo = await checkLoginInfo();
 
   if (loginInfo.status === 'ok') {
-    updateInfo()
+    return await updateInfo()
   } else {
     incorrectLogin()
   }
@@ -116,15 +138,14 @@ async function checkLoginInfo() {
 
 async function updateInfo() {
   let sendUpdateInfo = { "name": uname, "pin": pin, "changed_event": updateEvent, "new_event": newEvent }
-  fetch('/api/change', {
+  const response = await fetch('/api/change', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
     },
     body: JSON.stringify(sendUpdateInfo),
   });
-  document.querySelector("#errormessage").innerHTML = 'Login Changed!'
-  //window.location.replace("/login.html")
+  return await response.json()
 }
 
 function incorrectLogin() {
