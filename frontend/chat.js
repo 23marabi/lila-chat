@@ -12,17 +12,21 @@ form.addEventListener("submit", async function (event) {
 
     formMessage = formData.get('message').toString();
 
-        //KINDA UNNECESSARY
-        //CHECKS TO SEE IF THE PERSON IS LOGGED IN IN ORDER TO SEND A MESSAGE.
-        const response = await fetch(`api/token/${username}/`);
-        const matches = await response.json();
-      
-        //YES THIS IS CONFUSING I KNOW.
-        if (matches.status === "ok") {
-          sendMessage()
-        } else {
-            document.querySelector("#errormessage").innerHTML = 'Username and token mismatch. Try logging in again.'
-        }
+    //KINDA UNNECESSARY
+    //CHECKS TO SEE IF THE PERSON IS LOGGED IN IN ORDER TO SEND A MESSAGE.
+    const response = await fetch(`api/token/${username}/`);
+    const matches = await response.json();
+
+    //YES THIS IS CONFUSING I KNOW.
+    if (matches.status === "ok") {
+        sendMessage()
+    } else {
+        const mismatch = 'Username and token mismatch. Try logging in again.'
+        printText(mismatch.bold())
+        logout()
+        localStorage.removeItem('username')
+    }
+
 })
 
 //SEND MESSAGE FETCH FUNCTION
@@ -87,3 +91,10 @@ loggedIn()
 
 
 //REVIECE USERS PRONOUNS
+
+async function getPronouns() {
+const response = await fetch(`api/users/${username}/`);
+const data = await response.json();
+pronouns = data.pronouns
+return pronouns;
+}

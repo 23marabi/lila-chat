@@ -1,4 +1,4 @@
-// //VARIBLES
+// // //VARIBLES
 // myStorage = window.localStorage;
 // allCookies = document.cookie;
 
