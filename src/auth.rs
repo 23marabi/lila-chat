@@ -1,4 +1,5 @@
 extern crate log;
+use uuid::Uuid;
 use crate::file_io::*;
 use rocket::http::{Cookie, Cookies};
 use crate::user::*;
@@ -25,7 +26,7 @@ pub fn register(data: Json<RegisterEvent>) -> JsonValue {
             pronouns: data.pronouns.to_string().to_lowercase(),
             session_token: "NULL".to_string(),
             role: UserType::Normal,
-
+            id: Uuid::new_v4(),
         };
     db_add(&new_user);
 
@@ -272,6 +273,7 @@ pub fn get_user(name: String) -> JsonValue {
                 "name": user.name.to_lowercase(),
                 "pronouns": user.pronouns,
                 "role": user.role,
+                "id": user.id.to_string(),
             },
         });
     } else {
