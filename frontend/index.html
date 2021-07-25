@@ -1,46 +1,56 @@
 <!DOCTYPE html>
 <html>
 
-    <head>
-        <title>Maya's Stream</title>
-        <meta name="author" content="Luna">
-        <meta name="description" content="Maya's Stream">
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <meta charset="UTF-8">
-        <link rel="stylesheet" href="index.css">
-        <link rel="icon" href="/favicon.svg">
-    </head>
+<head>
+    <title>Maya's Stream</title>
+    <meta name="author" content="Luna">
+    <meta name="description" content="Maya's Stream">
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="index.css">
+    <link rel="icon" href="/favicon.svg">
+</head>
 
-    <body>
-<nav>
+<body>
+    <nav>
 
-    <ul class="navigation-list">
-        <li><a href="index.html"><div class="buttons">Stream</div></a></li>
-        <li><a href="chat.html"><div class="buttons">Just Chat</div></a></li>
-        <li><a href="register.html"><div class="buttons">Register</div></a></li>
-        <li><a href="login.html"><div class="buttons">Login</div></a></li>
-        <li><a href="updateinfo.html"><div class="buttons">Update Info</div></a></li>
-    </ul>
+        <ul class="navigation-list">
+            <li><a href="index.html">
+                    <div class="buttons">Stream</div>
+                </a></li>
+            <li><a href="chat.html">
+                    <div class="buttons">Just Chat</div>
+                </a></li>
+            <li><a href="register.html">
+                    <div class="buttons">Register</div>
+                </a></li>
+            <li><a href="login.html">
+                    <div class="buttons">Login</div>
+                </a></li>
+            <li><a href="updateinfo.html">
+                    <div class="buttons">Update Info</div>
+                </a></li>
+        </ul>
 
 
-</nav>
+    </nav>
 
     <main>
 
         <section>
 
-        <div id="streamchat">
-            <div id="stream">
-                <h1>This is where the stream will go.</h1>
-            </div>
+            <div id="streamchat">
+                <div id="stream">
+                    <iframe id="streamframe" src="https://live.on.chaos.stream/maya" title="mayas stream" scrolling="no"></iframe>
+                </div>
 
-            <iframe id="chatbox" src="chat.html" title="chat box" scrolling="no"></iframe> 
-            
-        </div>
+                <iframe id="chatbox" src="chat.html" title="chat box" scrolling="no"></iframe>
+
+            </div>
 
         </section>
 
     </main>
-    </body>
+</body>
 
 </html>

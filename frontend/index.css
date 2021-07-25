@@ -14,20 +14,22 @@ a {
     height: 100%;
     max-width: 960px;
     margin: 0 auto;
+    margin-top: -1%;
 
 }
 
 #stream {
-    background-color: white;
-    padding: 5%;
-    box-shadow: 10px 10px 10px black;
-    border-radius: 5px;
-    width: 854px;
-    height: 480px;
+    width: 960px;
+    height: 540px;
     margin-right: 0.3em;
     margin-left: -40%;
     margin-top: auto;
     margin-bottom: 20%;
+}
+
+#streamframe {
+    height: 100%;
+    width: 100%;
 }
 
 #chatbox {
@@ -60,6 +62,6 @@ a {
         padding: 15px;
         border-bottom: solid;
         border-left: solid;
-        border-color: white;
-        border-width: 1px;
+        border-color: lightblue;
+        border-width: 2px;
 }

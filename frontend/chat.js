@@ -47,7 +47,7 @@ async function sendMessage() {
 
 // RECIEVE MESSAGES
 
-let messageUpdate = window.setInterval(fetchMessages, 500);
+let messageUpdate = window.setInterval(fetchMessages, 1000);
 
 async function fetchMessages() {
     const response = await fetch('/api/message/messages.json');
