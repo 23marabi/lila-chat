@@ -283,20 +283,110 @@ pub fn get_user(name: String) -> JsonValue {
         });
     }
 }
+// Make a user into a moderator
+fn premote(name: &str) -> JsonValue {
+    if let Some(mut user) = db_read_user(&name.to_lowercase()).ok().flatten() {
+        if user.role != UserType::Admin { // make sure mods can't demote admins ;3
+            user.role = UserType::Moderator;
+            db_remove(&user);
+            db_add(&user);
+            info!("succesfully premoted user {}", &user.name);
+            return json!({
+                "status": "ok",
+                "reason": "premoted user",
+            });
+        } else {
+            warn!("user is an admin, cannot make moderator");
+            return json!({
+                "status": "fail",
+                "reason": "user is admin",
+            });
+        }
+    } else {
+        warn!("could not premote {}, user not found", &name);
+        return json!({
+            "status": "fail",
+            "reason": "user not found",
+        });
+    }
+}
+
+// Make a user into a normal user
+fn demote(name: &str) -> JsonValue {
+    if let Some(mut user) = db_read_user(&name.to_lowercase()).ok().flatten() {
+        if user.role != UserType::Admin { // make sure mods can't demote admins ;3
+            user.role = UserType::Normal;
+            db_remove(&user);
+            db_add(&user);
+            info!("succesfully demoted user {}", &user.name);
+            return json!({
+                "status": "ok",
+                "reason": "demoted user",
+            });
+        } else {
+            warn!("user is an admin, cannot demote");
+            return json!({
+                "status": "fail",
+                "reason": "user is admin",
+            });
+        }
+    } else {
+        warn!("could not demote {}, user not found", &name);
+        return json!({
+            "status": "fail",
+            "reason": "user not found",
+        });
+    }
+}
 
 // Kick a user (temporarilly log them out for a certain amount of time)
 fn kick(name: &str) -> JsonValue {
     if let Some(mut user) = db_read_user(&name.to_lowercase()).ok().flatten() {
-        user.session_token = "NULL".to_string();
-        db_remove(&user);
-        db_add(&user);
-        info!("succesfully kicked user {}", &user.name);
-        return json!({
-            "status": "ok",
-            "reason": "kicked user",
-        });
+        if user.role != UserType::Admin { // make sure mods can't kick admins
+            user.session_token = "NULL".to_string();
+            db_remove(&user);
+            db_add(&user);
+            info!("succesfully kicked user {}", &user.name);
+            return json!({
+                "status": "ok",
+                "reason": "kicked user",
+            });
+        } else {
+            warn!("user is an admin, cannot kick");
+            return json!({
+                "status": "fail",
+                "reason": "user is admin",
+            });
+        }
     } else {
         warn!("could not kick {}, user not found", &name);
+        return json!({
+            "status": "fail",
+            "reason": "user not found",
+        });
+    }
+
+}
+
+//  Ban a user (remove their account)
+fn ban(name: &str) -> JsonValue {
+    if let Some(mut user) = db_read_user(&name.to_lowercase()).ok().flatten() {
+        if user.role != UserType::Admin { // make sure mods can't kick admins
+            db_remove(&user);
+            info!("succesfully banned user {}", &user.name);
+            return json!({
+                "status": "ok",
+                "reason": "banned user",
+            });
+        } else {
+            warn!("user is an admin, cannot ban");
+            return json!({
+                "status": "fail",
+                "reason": "user is admin",
+            });
+        }
+    } else {
+        warn!("could not ban {}, user not found", &name);
         return json!({
             "status": "fail",
             "reason": "user not found",
@@ -326,12 +416,12 @@ pub fn moderation_actions(data: Json<ModerationAction>, mut cookies: Cookies) ->
                 "reason": "NULL token",
             });
         } else if user.session_token == token.value() { // if token matches
-            if user.role == UserType::Normal {
+            if user.role == UserType::Moderator {
             match data.action {
                     ModActions::Kick => kick(&data.target),
-                    ModActions::Ban => return json!({"status":"ok","reason":"banned user"}),
-                    ModActions::Demote => return json!({"status":"ok","reason":"demoted user"}),
-                    ModActions::Premote => return json!({"status":"ok","reason":"premoted user"}),
+                    ModActions::Ban => ban(&data.target),
+                    ModActions::Demote => demote(&data.target),
+                    ModActions::Premote => premote(&data.target),
                     _ => return json!({"status":"fail","reason":"bad command"}),
                 };
                 return json!({"status":"fail","reason":"idk"});
