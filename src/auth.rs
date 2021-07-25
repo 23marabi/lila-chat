@@ -284,6 +284,27 @@ pub fn get_user(name: String) -> JsonValue {
     }
 }
 
+// Kick a user (temporarilly log them out for a certain amount of time)
+fn kick(name: &str) -> JsonValue {
+    if let Some(mut user) = db_read_user(&name.to_lowercase()).ok().flatten() {
+        user.session_token = "NULL".to_string();
+        db_remove(&user);
+        db_add(&user);
+        info!("succesfully kicked user {}", &user.name);
+        return json!({
+            "status": "ok",
+            "reason": "kicked user",
+        });
+    } else {
+        warn!("could not kick {}, user not found", &name);
+        return json!({
+            "status": "fail",
+            "reason": "user not found",
+        });
+    }
+
+}
+
 /* User Management */
 #[post("/mod", format = "json", data = "<data>")]
 pub fn moderation_actions(data: Json<ModerationAction>, mut cookies: Cookies) -> JsonValue {
@@ -307,16 +328,13 @@ pub fn moderation_actions(data: Json<ModerationAction>, mut cookies: Cookies) ->
         } else if user.session_token == token.value() { // if token matches
             if user.role == UserType::Normal {
             match data.action {
-                    ModActions::Kick => {
-                        info!("kicked user {}", data.target)
-                    },
-                    ModActions::Ban => info!("banned user {}", data.target),
-                    _ => info!("F"),
+                    ModActions::Kick => kick(&data.target),
+                    ModActions::Ban => return json!({"status":"ok","reason":"banned user"}),
+                    ModActions::Demote => return json!({"status":"ok","reason":"demoted user"}),
+                    ModActions::Premote => return json!({"status":"ok","reason":"premoted user"}),
+                    _ => return json!({"status":"fail","reason":"bad command"}),
                 };
-                return json!({
-                    "status": "ok",
-                    "reason": "completed action",
-                });
+                return json!({"status":"fail","reason":"idk"});
             } else {
                 warn!("user does not have sufficient permissions to perform that action!");
                 return json!({
