@@ -13,7 +13,7 @@ form {
 }
 
 #box {
-    background-color: white;
+    background-color: rgb(255, 199, 207);
     padding: 5%;
     box-shadow: 10px 10px 10px black;
     border-radius: 5px;

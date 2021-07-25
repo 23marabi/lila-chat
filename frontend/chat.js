@@ -25,6 +25,7 @@ form.addEventListener("submit", async function (event) {
         printText(mismatch.bold())
         logout()
         localStorage.removeItem('username')
+        form.reset()
     }
 
 })

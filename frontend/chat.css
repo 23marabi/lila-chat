@@ -36,7 +36,7 @@ button {
 }
 
 #outerchatbox {
-    background-color: white;
+    background-color: rgb(255, 199, 207);
     padding: 1rem;
     box-shadow: 10px 10px 10px black;
     width: 30rem;
