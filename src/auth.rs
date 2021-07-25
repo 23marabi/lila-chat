@@ -420,7 +420,7 @@ pub fn moderation_actions(data: Json<ModerationAction>, mut cookies: Cookies) ->
                 "reason": "NULL token",
             });
         } else if user.session_token == token.value() { // if token matches
-            if user.role == UserType::Moderator {
+            if user.role == UserType::Moderator || user.role == UserType::Admin {
             match data.action {
                     ModActions::Kick => kick(&data.target),
                     ModActions::Ban => ban(&data.target),
