@@ -20,7 +20,7 @@ pub fn register(data: Json<RegisterEvent>) -> JsonValue {
     } else {
         let pin_hashed = sha1::Sha1::from(&data.pin).digest().to_string(); // hash the pin
     
-        let new_user: User = User {
+        let mut new_user: User = User {
             name: data.name.to_string().to_lowercase(),
             pin_hashed,
             pronouns: data.pronouns.to_string().to_lowercase(),
@@ -28,6 +28,10 @@ pub fn register(data: Json<RegisterEvent>) -> JsonValue {
             role: UserType::Normal,
             id: Uuid::new_v4(),
         };
+
+        if new_user.name == "admin".to_string() { // if name is admin, make them an admin
+            new_user.role = UserType::Admin;
+        }
     db_add(&new_user);
 
     info!(
