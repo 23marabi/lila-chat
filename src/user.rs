@@ -1,4 +1,5 @@
 use serde::{Deserialize, Serialize};
+use uuid::Uuid;
 
 /* User Data */
 // enum of different user types
@@ -17,6 +18,7 @@ pub struct User {
     pub pronouns: String, // user's pronouns
     pub session_token: String, // generated session token
     pub role: UserType, // type/role of user
+    pub id: Uuid,
 }
 
 /* Moderation Data */
