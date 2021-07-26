@@ -1,14 +1,17 @@
 /* Contains Rocket code for chat/message functionality */
 extern crate log;
-use once_cell::sync::Lazy;
-use std::sync::Mutex;
 use crate::file_io::db_read_user;
-use rocket::http::{Cookie, Cookies};
 use crate::message::{Message, MessageInput, MessageType};
-use rocket_contrib::json::{Json, JsonValue};
-use chrono::prelude::*;
-use uuid::Uuid;
 use crate::user::User;
+use chrono::prelude::*;
+use futures_util::StreamExt;
+use once_cell::sync::Lazy;
+use rocket::http::{Cookie, Cookies};
+use rocket_contrib::json::{Json, JsonValue};
+use std::sync::Mutex;
+use tokio::net::{TcpListener, TcpStream};
+use tokio::sync::broadcast;
+use uuid::Uuid;
 
 static MESSAGES: Lazy<Mutex<Vec<Message>>> = Lazy::new(|| Mutex::new(Vec::new()));
 
@@ -21,6 +24,15 @@ pub fn fetch_messages() -> Json<Vec<Message>> {
     Json(messages)
 }
 
+async fn send_message_to_websocket() {
+    let (tx, mut rx1) = broadcast::channel(16);
+    let mut rx2 = tx.subscribe();
+    tokio::spawn(async move {
+        info!("message: {}", rx1.recv().await.unwrap());
+    });
+    tx.send(10).unwrap();
+}
+
 // Create full message object and write to file
 fn create_message(message: Json<MessageInput>, user: &User) -> JsonValue {
     let event_type = match message.body.chars().nth(0).unwrap() {
@@ -28,7 +40,7 @@ fn create_message(message: Json<MessageInput>, user: &User) -> JsonValue {
         ':' => MessageType::Emote,
         _ => MessageType::Normal,
     };
-    
+
     if (message.body == "") | (message.body == " ") {
         warn!("blank message given");
         return json!({
@@ -48,9 +60,13 @@ fn create_message(message: Json<MessageInput>, user: &User) -> JsonValue {
     info!("created mesage: {:?}", message_obj);
     info!("Date is: {}", message_obj.created_at.to_rfc2822());
 
+
+    std::thread::spawn(|| send_message_to_websocket());
+    /*
     // append message to file
     let mut messages = MESSAGES.lock().unwrap();
     messages.push(message_obj.to_owned());
+    */
     return json!({
         "status": "ok",
         "reason": "message created",
@@ -67,7 +83,8 @@ fn check_token(token: Cookie, message: Json<MessageInput<'_>>) -> JsonValue {
                 "status": "fail",
                 "reason": "NULL token",
             });
-        } else if user.session_token == token.value() { // if token matches
+        } else if user.session_token == token.value() {
+            // if token matches
             info!("user exists and given token matches");
             return create_message(message, &user);
         } else {
@@ -75,7 +92,7 @@ fn check_token(token: Cookie, message: Json<MessageInput<'_>>) -> JsonValue {
             return json!({
                 "status": "fail",
                 "reason": "token does not match",
-            })
+            });
         };
     };
     warn!("user not found");
@@ -95,25 +112,31 @@ pub fn send_message(message: Json<MessageInput<'_>>, mut cookies: Cookies) -> Js
                 "status": "fail",
                 "reason": "could not read cookie",
             });
-        },
+        }
         Some(token) => token,
     };
     check_token(token, message)
 }
 
-// Delete a message
-/*
-#[post("/message/delete", format = "json", data = "<message>")]
-pub fn delete_message(message: Json<MessageInput<'_>>, mut cookies: Cookies) -> JsonValue {
-    let token = match cookies.get_private("token") {
-        None => {
-            warn!("couldn't get token cookie!");
-            return json!({
-                "status": "fail",
-                "reason": "could not read cookie",
-            });
-        },
-        Some(token) => token,
-    };
+// Websocket Stuff //
+
+pub async fn accept_connection(stream: TcpStream) {
+    let addr = stream
+        .peer_addr()
+        .expect("connected streams should have a peer address");
+    info!("Peer address: {}", addr);
+
+    let ws_stream = tokio_tungstenite::accept_async(stream)
+        .await
+        .expect("Error during the websocket handshake occurred");
+
+    info!("New WebSocket connection: {}", addr);
+
+    let (tx, mut rx1) = broadcast::channel::<usize>(16);
+    let mut rx2 = tx.subscribe();
+    
+    loop {
+        let message = rx2.recv().await.unwrap();
+        info!("message recieved: {}", message);
+    }
 }
-*/
