@@ -38,7 +38,7 @@ form.addEventListener("submit", async function (event) {
 
     if (regRes.status === 'ok') {
       document.querySelector("#errormessage").innerHTML = 'Registered!'
-      window.location.replace("/login.html")
+      window.location.replace("../html/login.html")
     } else {
       document.querySelector("#errormessage").innerHTML = 'Failed to register. Try again later.'
     }

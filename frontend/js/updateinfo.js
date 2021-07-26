@@ -82,7 +82,7 @@ form.addEventListener("submit", async function (event) {
 
     if (updateResponse.status === 'ok') {
       document.querySelector("#errormessage").innerHTML = 'Login Changed!'
-      window.location.replace("/login.html")
+      window.location.replace("../html/login.html")
     } else {
       document.querySelector("#errormessage").innerHTML = 'Failed to update info. Try again later.'
     }

@@ -5,7 +5,7 @@ html {
 
 @font-face {
     font-family: Linotte;
-    src: url(LinotteRegular.otf);
+    src: url(../assets/LinotteRegular.otf);
   }
 
 a {

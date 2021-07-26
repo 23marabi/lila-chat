@@ -14,7 +14,7 @@ form.addEventListener("submit", async function (event) {
 
     //KINDA UNNECESSARY
     //CHECKS TO SEE IF THE PERSON IS LOGGED IN IN ORDER TO SEND A MESSAGE.
-    const response = await fetch(`api/token/${username}/`);
+    const response = await fetch(`../api/token/${username}/`);
     const matches = await response.json();
 
     //YES THIS IS CONFUSING I KNOW.
@@ -34,7 +34,7 @@ form.addEventListener("submit", async function (event) {
 
 async function sendMessage() {
     sendMessageInfo = { "name": username, "body": formMessage }
-    fetch('/api/message/send', {
+    fetch('../api/message/send', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
