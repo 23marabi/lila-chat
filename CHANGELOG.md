@@ -3,6 +3,17 @@
 - `/api/register` & `/api/login` now use JSON data
 - Changing user info now uses Enum (Name, Pin, or Pronouns)
 
+### 0.6.1
+- Add basic support for different user roles & moderator commands
+- Any user names "admin" will be made into an Admin user
+- User pronouns are stored in message body now
+
+## 0.5.0
+- Most actions should now fail on a NULL token
+- Cookie should now expire after a week
+- Use sled database instead of json file to store users
+- Now use `GET /api/token/<name>` to validate a users session token
+
 ### 0.5.2
 - When changing a username, it now deletes the previous user instead of creating a new one
 - Database functions should now use some error handling
@@ -13,13 +24,6 @@
 - Add basic support for different message types
 - Messages now use unix timestamps
 	- Backend finds timestamp
-
-## 0.5.0
-- Most actions should now fail on a NULL token
-- Cookie should now expire after a week
-- Use sled database instead of json file to store users
-- Now use `GET /api/token/<name>` to validate a users session token
-
 ## 0.4.0
 - Serve frontend code
 - Set cookie for token

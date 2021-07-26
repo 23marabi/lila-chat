@@ -42,6 +42,7 @@ fn create_message(message: Json<MessageInput>, user: &User) -> JsonValue {
         id: Uuid::new_v4(),
         event_type,
         user: user.name.to_lowercase().to_owned(),
+        pronouns: user.pronouns.to_lowercase().to_owned(),
         body: message.body.to_string(),
         created_at: Utc::now(),
     };

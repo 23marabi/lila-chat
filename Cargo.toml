@@ -1,7 +1,7 @@
 [package]
 name = "lila-chat"
 description = "A basic chat server written in rust"
-version = "0.6.0"
+version = "0.6.1"
 documentation = "https://git.lavender.software/erin/lila-chat/wiki"
 repository = "https://git.lavender.software/erin/lila-chat/"
 license = "CNPLv6+"

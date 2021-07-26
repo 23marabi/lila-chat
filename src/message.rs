@@ -21,6 +21,7 @@ pub struct Message {
     pub id: Uuid,
     pub event_type: MessageType,
     pub user: String,
+    pub pronouns: String,
     pub body: String,
     pub created_at: DateTime<Utc>,
 }

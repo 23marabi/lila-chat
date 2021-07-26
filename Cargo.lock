@@ -577,6 +577,25 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "320cfe77175da3a483efed4bc0adc1968ca050b098ce4f2f1c13a56626128790"
 
 [[package]]
+name = "lila-chat"
+version = "0.6.0"
+dependencies = [
+ "bincode",
+ "chrono",
+ "env_logger",
+ "log 0.4.14",
+ "once_cell",
+ "random-string",
+ "rocket",
+ "rocket_contrib",
+ "serde",
+ "serde_json",
+ "sha1",
+ "sled",
+ "uuid",
+]
+
+[[package]]
 name = "lock_api"
 version = "0.4.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -804,25 +823,6 @@ name = "percent-encoding"
 version = "2.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d4fd5641d01c8f18a23da7b6fe29298ff4b55afcccdf78973b24cf3175fee32e"
-
-[[package]]
-name = "pogchat"
-version = "0.6.0"
-dependencies = [
- "bincode",
- "chrono",
- "env_logger",
- "log 0.4.14",
- "once_cell",
- "random-string",
- "rocket",
- "rocket_contrib",
- "serde",
- "serde_json",
- "sha1",
- "sled",
- "uuid",
-]
 
 [[package]]
 name = "polyval"
