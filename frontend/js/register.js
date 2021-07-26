@@ -52,7 +52,7 @@ form.addEventListener("submit", async function (event) {
 //CHECKS IF A USERNAME IS TAKEN
 async function isUnameTaken() {
 
-  const response = await fetch(`../api/users/${uname}/`);
+  const response = await fetch(`/api/users/${uname}/`);
   const isTaken = await response.json();
 
   //YES THIS IS CONFUSING I KNOW.
