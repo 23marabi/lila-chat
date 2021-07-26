@@ -1,7 +1,12 @@
 html {
     background: #F7A8B8;
-    font-family: "Lucida Console", "Courier New", monospace;
+    font-family: "Linotte", "Lucida Console", monospace;
 }
+
+@font-face {
+    font-family: Linotte;
+    src: url(LinotteRegular.otf);
+  }
 
 a {
     color: black;
@@ -25,6 +30,8 @@ a {
     margin-left: -40%;
     margin-top: auto;
     margin-bottom: 20%;
+    font-size: 250%;
+    text-align: center;
 }
 
 #streamframe {

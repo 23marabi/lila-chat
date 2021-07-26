@@ -1,8 +1,13 @@
 html {
     background: #F7A8B8;
     text-align: center;
-    font-family: "Lucida Console", "Courier New", monospace;
+    font-family: "Linotte", "Lucida Console", monospace;
 }
+
+@font-face {
+    font-family: Linotte;
+    src: url(LinotteRegular.otf);
+  }
 
 form {
     width: 100%;

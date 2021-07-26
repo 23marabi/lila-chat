@@ -27,7 +27,7 @@ form.addEventListener("submit", async function (event) {
         localStorage.removeItem('username')
         form.reset()
     }
-
+    return formMessage;
 })
 
 //SEND MESSAGE FETCH FUNCTION
@@ -42,6 +42,7 @@ async function sendMessage() {
         body: JSON.stringify(sendMessageInfo),
     })
     form.reset()
+    modCommand()
 }
 
 
@@ -55,7 +56,17 @@ async function fetchMessages() {
     document.getElementById("chatbox").innerHTML = ""
 
     for (const message of recievedMessages) {
-        printText(message.user.bold().toString() + ": " + message.body.toString());
+
+        let leftBracket = '('
+        let rightBracket = ')'
+        let space = ' '
+
+        if (message.pronouns === '' || message.pronouns === 'none' || message.pronouns === null) {
+            leftBracket = ''
+            rightBracket = ''
+            space = ''
+        }
+        printText(message.user.bold().toString() + space + leftBracket.small() + message.pronouns.small().toString() + rightBracket.small() + ": " + message.body.toString());
     }
 
 
@@ -90,12 +101,48 @@ function loggedIn() {
 
 loggedIn()
 
+//MODERATION
 
-//REVIECE USERS PRONOUNS
+async function modCommand() {
+let action = ''
+let target = ''
 
-async function getPronouns() {
-const response = await fetch(`api/users/${username}/`);
-const data = await response.json();
-pronouns = data.pronouns
-return pronouns;
+if (formMessage.startsWith('/ban')) {
+    action = "Ban"
+    target = formMessage.replace('/ban ', '')
+    sendCommand()
+} else if (formMessage.startsWith('/kick')) {
+    action = "Kick"
+    target = formMessage.replace('/kick ', '')
+    sendCommand()
+} else if (formMessage.startsWith('/promote')) {
+    action = "Promote"
+    target = formMessage.replace('/promote ', '')
+    sendCommand()
+} else if (formMessage.startsWith('/demote')) {
+    action = "Demote"
+    target = formMessage.replace('/demote ', '')
+    sendCommand()
+} else {
+    return;
 }
+
+async function sendCommand() {
+    let sendCommand = { "name": username, "action": action, "target": target }
+    const response = await fetch('/api/mod/', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(sendCommand),
+    });
+    if (response.status === 'ok') {
+        return;
+    } else {
+        printText('Error Issuing Command. Are you an Admin or Mod?')
+    }
+  }
+}
+
+
+
