@@ -66,7 +66,7 @@ async function fetchMessages() {
             rightBracket = ''
             space = ''
         }
-        printText(message.user.bold().toString() + space + leftBracket.small() + message.pronouns.small().toString() + rightBracket.small() + ": " + message.body.toString());
+        printText(message.user.bold().toString() + space + "<i style='color:#b8d1e7'>" + leftBracket.small() + message.pronouns.small().toString() + rightBracket.small() + "</i>" + " : " + "<span style='color:#e4e4ef'>" + message.body.toString() + "</span>");
     }
 
 
